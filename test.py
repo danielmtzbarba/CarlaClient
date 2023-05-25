@@ -17,6 +17,11 @@ import glob
 import os
 import sys
 
+from utils.utils import create_path
+
+TEST_NAME = "TEST_1"
+test_path = create_path("_out", TEST_NAME)
+
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
         sys.version_info.major,
@@ -56,10 +61,21 @@ def run_simulation(args, client):
 
         # Getting the world and
         world = client.get_world()
-        #world.unload_map_layer(carla.MapLayer.Buildings)
-       # world.unload_map_layer(carla.MapLayer.All)
-       # world.unload_map_layer(carla.MapLayer.Props)
 
+        obj_types = [carla.CityObjectLabel.Buildings, carla.CityObjectLabel.Fences,
+                     carla.CityObjectLabel.Other, carla.CityObjectLabel.Vegetation, 
+                     carla.CityObjectLabel.Poles, carla.CityObjectLabel.RoadLines,
+                     carla.CityObjectLabel.TrafficSigns, carla.CityObjectLabel.Bridge,
+                     carla.CityObjectLabel.Walls, carla.CityObjectLabel.Static,
+                     carla.CityObjectLabel.Dynamic, carla.CityObjectLabel.RailTrack,
+                     carla.CityObjectLabel.GuardRail]
+        
+        for obj_type in obj_types:      
+            env_objs = world.get_environment_objects(obj_type)
+
+            objects_to_toggle = {x.id for x in env_objs}
+            # Toggle off
+            world.enable_environment_objects(objects_to_toggle, False)
 
         original_settings = world.get_settings()
 
@@ -75,15 +91,15 @@ def run_simulation(args, client):
         # Instanciating the vehicle to which we attached the sensors
         bp = world.get_blueprint_library().filter('charger_2020')[0]
         vehicle = world.spawn_actor(bp, random.choice(world.get_map().get_spawn_points()))
+        traffic_manager.ignore_lights_percentage(vehicle, 100)
+        tm_port = traffic_manager.get_port()
 
-        location = vehicle.get_location()
-        location.x = 0
-        location.y = 0
-        
-        vehicle.set_transform(carla.Transform(location, carla.Rotation(0, 0, 0)))
-
+        vehicle.set_autopilot(True, tm_port)
         vehicle_list.append(vehicle)
-        #vehicle.set_autopilot(True)
+
+
+        #
+        #
 
         # Display Manager organize all the sensors an its display in a window
         # If can easily configure the grid and the total window size
@@ -91,15 +107,14 @@ def run_simulation(args, client):
 
         # Then, SensorManager can be used to spawn RGBCamera, LiDARs and SemanticLiDARs as needed
         # and assign each of them to a grid position, 
-        #SensorManager(world, display_manager, 'RGBCamera', carla.Transform(carla.Location(x=0, z=2.0), carla.Rotation(yaw=+00)), 
-         #             vehicle, {}, display_pos=[0, 0])
-       # SensorManager(world, display_manager, 'LiDAR', carla.Transform(carla.Location(x=0, z=2.0)), 
-        #             vehicle, {'channels' : '1', 'range' : '100',  'points_per_second': '720',
-                           #     'rotation_frequency': '20'}, display_pos=[0, 1])
+        SensorManager(world, display_manager, 'RGBCamera', carla.Transform(carla.Location(x=0, z=2.0), carla.Rotation(yaw=+00)), 
+                      vehicle, {}, display_pos=[0, 0], save_dir = test_path,render_enabled=False)
+        SensorManager(world, display_manager, 'LiDAR', carla.Transform(carla.Location(x=0, z=2.0)), 
+                     vehicle, {'channels' : '1', 'range' : '100',  'points_per_second': '720',
+                                'rotation_frequency': '20'}, display_pos=[0, 1], save_dir = test_path, render_enabled=False)
         SensorManager(world, display_manager, 'SemCamera', carla.Transform(carla.Location(x=0, z=32), carla.Rotation(yaw=+00, pitch=-90)), 
-                      vehicle, {}, display_pos=[0, 0])
-     
-    
+                      vehicle, {}, save_dir = test_path, display_pos=[0, 0])
+        
         #Simulation loop
         call_exit = False
         time_init_sim = timer.time()

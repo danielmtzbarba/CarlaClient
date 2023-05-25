@@ -9,6 +9,7 @@
 import carla
 import pygame
 from PIL import Image
+import cv2
 
 import numpy as np
 
@@ -17,11 +18,15 @@ from scipy.spatial.transform import Rotation as R
 from utils.utils import CustomTimer
 
 class SensorManager:
-    def __init__(self, world, display_man, sensor_type, transform, attached, sensor_options, display_pos):
+    def __init__(self, world, display_man, sensor_type,
+                  transform, attached, sensor_options, display_pos,
+                  save_dir, render_enabled = True):
+        
         self.surface = None
         self.world = world
         self.display_man = display_man
         self.display_pos = display_pos
+        self.render_enabled = render_enabled
         self.rgb_camera = None
         self.sensor = self.init_sensor(sensor_type, transform, attached, sensor_options)
         self.sensor_options = sensor_options
@@ -32,6 +37,8 @@ class SensorManager:
         self.tics_processing = 0
 
         self.display_man.add_sensor(self)
+
+        self.save_dir = save_dir
 
     def init_sensor(self, sensor_type, transform, attached, sensor_options):
         if sensor_type == 'RGBCamera':
@@ -60,7 +67,6 @@ class SensorManager:
 
             sem_camera = self.world.spawn_actor(sem_camera_bp, transform, attach_to=attached)
             sem_camera.listen(self.save_sem_camera)
-            self.sem_camera = sem_camera
 
             return sem_camera
 
@@ -117,25 +123,31 @@ class SensorManager:
         array = array[:, :, :3]
         array = array[:, :, ::-1]
 
-        if self.display_man.render_enabled():
+        if self.display_man.render_enabled() and self.render_enabled:
             self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
 
         t_end = self.timer.time()
         self.time_processing += (t_end-t_start)
         self.tics_processing += 1
-        # image.save_to_disk('out/rgb/rgb_%6d.jpg' % image.frame)
+        image.save_to_disk(str(self.save_dir) + '/rgb/rgb_%6d.jpg' % image.frame)
 
     
-    def fov_points(self):
+    def draw_fov(self):
         max_dist = 30
+        og = self.rgb_camera.get_location()
+        self.world.debug.draw_point(og, size=0.1, life_time=0.1)
+        self.world.debug.draw_point(p1, size=0.1, life_time=0.1, color = carla.Color(255, 0, 0))
+        self.world.debug.draw_point(p2, size=0.1, life_time=0.1, color = carla.Color(255, 0, 0))
+
+        self.world.debug.draw_arrow(og, p1, thickness=0.1, color=carla.Color(0,0,255),
+                                    life_time=0.1)
+        self.world.debug.draw_arrow(og, p2, thickness=0.1, color=carla.Color(0,0,255),
+                                    life_time=0.1)
 
         cam_location = self.sem_camera.get_location()
         cam_location.z = 2
         p1 = carla.Location(cam_location.x + max_dist, cam_location.y - max_dist, 2)
         p2 = carla.Location(cam_location.x + max_dist, cam_location.y + max_dist, 2)
-
-        return cam_location, p1, p2
-
 
     def save_sem_camera(self, image):
         t_start = self.timer.time()
@@ -145,22 +157,16 @@ class SensorManager:
         array = np.reshape(array, (image.height, image.width, 4))
         array = array[:, :, :3]
         array = array[:, :, ::-1]
+        
+        mask = cv2.imread('./tools/binary_bev_mask.jpg',0)
+        res = cv2.bitwise_and(array,array,mask = mask)
 
-        if self.display_man.render_enabled():
+        if self.display_man.render_enabled() and self.render_enabled:
             self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
 
-        og, p1, p2 = self.fov_points()
+      #  self.draw_fov()
 
-        self.world.debug.draw_point(og, size=0.1, life_time=0.1)
-        self.world.debug.draw_point(p1, size=0.1, life_time=0.1, color = carla.Color(255, 0, 0))
-        self.world.debug.draw_point(p2, size=0.1, life_time=0.1, color = carla.Color(255, 0, 0))
-
-        self.world.debug.draw_arrow(og, p1, thickness=0.1, color=carla.Color(0,0,255),
-                                    life_time=0.1)
-        self.world.debug.draw_arrow(og, p2, thickness=0.1, color=carla.Color(0,0,255),
-                                    life_time=0.1)
-        print(image.height, image.width)
-        image.save_to_disk('out/sem/bev_mask.jpg')# % image.frame)
+        image.save_to_disk(str(self.save_dir) + '/sem/sem_%6d.jpg' % image.frame)
         t_end = self.timer.time()
         self.time_processing += (t_end-t_start)
         self.tics_processing += 1
@@ -185,13 +191,13 @@ class SensorManager:
 
         lidar_img[tuple(lidar_data.T)] = (255, 255, 255)
 
-        if self.display_man.render_enabled():
+        if self.display_man.render_enabled() and self.render_enabled:
             self.surface = pygame.surfarray.make_surface(lidar_img)
 
         im = Image.fromarray(lidar_img)
-      #  im.save('out/lidar/lidar_%6d.jpg' % image.frame)
+        im.save(str(self.save_dir) + '/lidar/lidar_%6d.jpg' % image.frame)
 
-      #  lidar_img.save_to_disk('out/lidar/lidar_%6d.jpg' % image.frame)
+        #lidar_img.save_to_disk(str(self.save_dir) + 'lidar/lidar_%6d.jpg' % image.frame)
 
         t_end = self.timer.time()
         self.time_processing += (t_end-t_start)
@@ -216,7 +222,7 @@ class SensorManager:
 
         lidar_img[tuple(lidar_data.T)] = (255, 255, 255)
 
-        if self.display_man.render_enabled():
+        if self.display_man.render_enabled() and self.render_enabled:
             self.surface = pygame.surfarray.make_surface(lidar_img)
 
         t_end = self.timer.time()
