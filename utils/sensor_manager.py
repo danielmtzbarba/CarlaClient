@@ -17,6 +17,8 @@ from scipy.spatial.transform import Rotation as R
 
 from utils.utils import CustomTimer
 
+SAVE_EVERY = 5
+
 class SensorManager:
     def __init__(self, world, display_man, sensor_type,
                   transform, attached, sensor_options, display_pos,
@@ -35,6 +37,7 @@ class SensorManager:
 
         self.time_processing = 0.0
         self.tics_processing = 0
+        self.frames_saved = 0
 
         self.display_man.add_sensor(self)
 
@@ -129,7 +132,10 @@ class SensorManager:
         t_end = self.timer.time()
         self.time_processing += (t_end-t_start)
         self.tics_processing += 1
-        image.save_to_disk(str(self.save_dir) + '/rgb/rgb_%6d.jpg' % image.frame)
+
+        if image.frame % SAVE_EVERY == 0:
+            image.save_to_disk(str(self.save_dir) + f'/rgb/rgb_{self.frames_saved}.jpg')
+            self.frames_saved += 1
 
     
     def draw_fov(self):
@@ -165,8 +171,10 @@ class SensorManager:
             self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
 
       #  self.draw_fov()
+        if image.frame % SAVE_EVERY == 0:
+            image.save_to_disk(str(self.save_dir) + f'/sem/sem_{self.frames_saved}.jpg')
+            self.frames_saved += 1
 
-        image.save_to_disk(str(self.save_dir) + '/sem/sem_%6d.jpg' % image.frame)
         t_end = self.timer.time()
         self.time_processing += (t_end-t_start)
         self.tics_processing += 1
@@ -195,7 +203,9 @@ class SensorManager:
             self.surface = pygame.surfarray.make_surface(lidar_img)
 
         im = Image.fromarray(lidar_img)
-        im.save(str(self.save_dir) + '/lidar/lidar_%6d.jpg' % image.frame)
+        if image.frame % SAVE_EVERY == 0:
+            im.save(str(self.save_dir) + f'/lidar/lidar_{self.frames_saved}.jpg')
+            self.frames_saved += 1
 
         #lidar_img.save_to_disk(str(self.save_dir) + 'lidar/lidar_%6d.jpg' % image.frame)
 

@@ -19,7 +19,7 @@ import sys
 
 from utils.utils import create_path
 
-TEST_NAME = "TEST_1"
+TEST_NAME = "TEST_2"
 test_path = create_path("_out", TEST_NAME)
 
 try:
