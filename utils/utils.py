@@ -22,7 +22,7 @@ def make_folder(path):
 
 def create_path(results_path = "_out", id=None): 
     if id:
-        for i in ["rgb", "sem", "lidar"]:
+        for i in ["rgb", "sem", "lidar", "bev"]:
             save_dir = Path(results_path) / id / i
             make_folder(save_dir)
         return Path(results_path) / id 

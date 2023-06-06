@@ -19,7 +19,7 @@ import sys
 
 from utils.utils import create_path
 
-TEST_NAME = "TEST_2"
+TEST_NAME = "TOWN01"
 test_path = create_path("_out", TEST_NAME)
 
 try:
@@ -109,9 +109,9 @@ def run_simulation(args, client):
         # and assign each of them to a grid position, 
         SensorManager(world, display_manager, 'RGBCamera', carla.Transform(carla.Location(x=0, z=2.0), carla.Rotation(yaw=+00)), 
                       vehicle, {}, display_pos=[0, 0], save_dir = test_path,render_enabled=False)
-        SensorManager(world, display_manager, 'LiDAR', carla.Transform(carla.Location(x=0, z=2.0)), 
-                     vehicle, {'channels' : '1', 'range' : '100',  'points_per_second': '720',
-                                'rotation_frequency': '20'}, display_pos=[0, 1], save_dir = test_path, render_enabled=False)
+       # SensorManager(world, display_manager, 'LiDAR', carla.Transform(carla.Location(x=0, z=2.0)), 
+        #             vehicle, {'channels' : '1', 'range' : '100',  'points_per_second': '720',
+         #                       'rotation_frequency': '20'}, display_pos=[0, 1], save_dir = test_path, render_enabled=False)
         SensorManager(world, display_manager, 'SemCamera', carla.Transform(carla.Location(x=0, z=32), carla.Rotation(yaw=+00, pitch=-90)), 
                       vehicle, {}, save_dir = test_path, display_pos=[0, 0])
         
