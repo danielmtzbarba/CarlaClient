@@ -1,10 +1,10 @@
 import os
 import cv2
 import numpy as np
-
+import matplotlib.pyplot as plt
 from pathlib import Path
 
-RESULTS_PATH = Path("_out")
+RESULTS_PATH = Path("C:\\Users\\Danie\\OneDrive\\dan\\RESEARCH\\DATASETS\\CARLA_BEV")
 
 TEST_NAME = "TOWN01"
 DIM_BEV = (64, 64)
@@ -62,17 +62,47 @@ def two_tag_segmentation(img):
 def postprocess(img):
     masked = mask_img(img)
     resized = resize_img(masked)
-
     segmented = two_tag_segmentation(resized)
     return segmented
 
-def main():
+from random import randint
+from dan.graph_tools import histogram_grayscale, imshow_grayscale, compare_two_plots, compare_images
+
+def debug(img):
+    histogram_grayscale(img, title="Histogram - Raw Segmented Image")
+    res = postprocess(img)
+    _ , ax1 = histogram_grayscale(res, title="Histogram - Post processed")
+    #_ , im1 = imshow_grayscale(res)
+
+    with open('debug.npy', 'wb') as f:
+        np.save(f, res)
+
+    with open('debug.npy', 'rb') as f:
+        res_reloaded = np.load(f)
+
+    _ , ax2 = histogram_grayscale(res_reloaded, title="Histogram - Post processed, Saved and Loaded")
+    compare_images([res, res_reloaded])
+   # 
+    plt.show()
+
+   
+DEBUG = False
+
+if __name__ == '__main__':
     img_lst = list_test_imgs()
+    #
+    if DEBUG:
+        img_lst = [img_lst[randint(0, len(img_lst) - 1)]]
+    #
     for img_name in img_lst:
         img_path = SEM_IMG_PATH / img_name
         img = load_img(str(img_path))
         res = postprocess(img)
-        stacked_img = np.stack((res,)*3, axis=-1)
-        cv2.imwrite(str(BEV_SAVE_PATH  / img_name), stacked_img)
-
-main()
+        #
+        if DEBUG:
+            debug(img)
+        else:
+            img_name = img_name[:-4]
+            with open(str(BEV_SAVE_PATH  / img_name) + '.npy', 'wb') as f:
+                np.save(f, res)
+        #
