@@ -52,11 +52,11 @@ def two_tag_segmentation(img):
             if img.item(y, x) == 0:
                 continue
             elif img.item(y, x) == 90:
-                img[y, x] = 255
+                img[y, x] = 1  # 255
             elif img.item(y, x) == 16:
-                img[y, x] = 50
+                img[y, x] =  2 # 50
             else:
-                img[y, x] = 128
+                img[y, x] = 3  # 128
     return img
 
 def postprocess(img):
@@ -73,13 +73,16 @@ def debug(img):
     res = postprocess(img)
     _ , ax1 = histogram_grayscale(res, title="Histogram - Post processed")
     #_ , im1 = imshow_grayscale(res)
-
+    """
+    
     with open('debug.npy', 'wb') as f:
         np.save(f, res)
 
     with open('debug.npy', 'rb') as f:
         res_reloaded = np.load(f)
-
+    """
+    cv2.imwrite('debug.png', res)
+    res_reloaded = cv2.imread('debug.png', cv2.IMREAD_GRAYSCALE)
     _ , ax2 = histogram_grayscale(res_reloaded, title="Histogram - Post processed, Saved and Loaded")
     compare_images([res, res_reloaded])
    # 
@@ -103,6 +106,4 @@ if __name__ == '__main__':
             debug(img)
         else:
             img_name = img_name[:-4]
-            with open(str(BEV_SAVE_PATH  / img_name) + '.npy', 'wb') as f:
-                np.save(f, res)
-        #
+            cv2.imwrite(str(BEV_SAVE_PATH  / img_name) + '.png', res)
