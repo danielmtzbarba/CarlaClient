@@ -36,6 +36,7 @@ front_rgb_camera = {
     'params':{
         'image_size_x': "1024",
         'image_size_y': "1024",
+        'fov': "90.0",
     },
 
     'save': True,
