@@ -1,5 +1,15 @@
+import numpy as np
 from os.path import join
+
+from matplotlib import cm
 from carla import ColorConverter
+
+convs = {
+    "sem": ColorConverter.CityScapesPalette,
+    "bev": ColorConverter.CityScapesPalette,
+    "rgbd": ColorConverter.Depth,
+    "rgb": ColorConverter.Raw,
+}
 
 class Camera(object):
     def __init__(self, sensor, args):
@@ -11,8 +21,9 @@ class Camera(object):
 
     def set_frame(self, frame):
         self._frame = frame
-        if self.args.id != "rgb":
-            self._frame.convert(ColorConverter.CityScapesPalette)
+        conv = convs[self.args.id]
+        self._frame.convert(conv)
+
         if self.args.save:
             self.save_frame()
     
@@ -23,5 +34,9 @@ class Camera(object):
         return self._frame
     
     def save_frame(self):
-        self._frame.save_to_disk(join(self.save_path, self.args.id, f"{self._n_frame}.jpg"))
+        im_path = join(self.save_path,
+                    self.args.id,
+                    f"{self._n_frame}.jpg")
+        
+        self._frame.save_to_disk(im_path)
         self._n_frame += 1

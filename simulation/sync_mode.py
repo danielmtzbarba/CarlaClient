@@ -44,6 +44,7 @@ class CarlaSyncMode(CarlaClient):
 
     def tick(self, timeout):
         self.frame = self.world.tick()
+        self.n_frame += 1
         data = [self._retrieve_data(q, timeout) for q in self._queues]
 
         for sensor, frame in zip(self.sensors, data[1:]):

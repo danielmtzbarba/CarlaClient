@@ -43,12 +43,16 @@ class Simulation(object):
                     sync_mode.ego_next_waypoint()
 
                     # Advance the simulation and wait for the data.
-                    snapshot, image_rgb, image_semseg = sync_mode.tick(timeout=2.0)
+                    (snapshot, front_rgb, front_sem, front_rgbd,
+                     image_bev, lidar_img) = sync_mode.tick(timeout=2.0)
 
                     # Draw the pygame display.
-                    self.display.draw_display(snapshot, image_rgb, image_semseg)
+                    self.display.draw_display(snapshot, front_rgb)
                     # Update the pygame display
                     self.display.update()
+
+                    if sync_mode.n_frame == self.args.frames:
+                        return
                         
         finally:
             pygame.quit()

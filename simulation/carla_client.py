@@ -4,6 +4,7 @@ import carla
 from carla import Transform, Location, Rotation
 
 from simulation.sensors.camera import Camera
+from simulation.sensors.lidar import Lidar
 
 map_layers = {
     'Vegetation':  carla.CityObjectLabel.Vegetation,
@@ -25,6 +26,7 @@ map_layers = {
 class CarlaClient(object):
     actor_list = []
     sensors = []
+    n_frame = 0
 
     def __init__(self):
         self.client = carla.Client('localhost', 2000)
@@ -33,7 +35,7 @@ class CarlaClient(object):
         self.traffic_manager = self.client.get_trafficmanager(8000)
         self.world_setup()
         self.ego_setup()
-
+    
     def world_setup(self):
         """
         Applies the args.world_args to the carla.WorldSettings.
@@ -41,9 +43,11 @@ class CarlaClient(object):
         Toggles off the defined map layers.
         """
         self.world = self.client.get_world()
+        self.debug = self.world.debug
+
+        self.map = self.world.get_map()
         self.og_settings = self.get_world_settings()
         self.bp_library = self.world.get_blueprint_library()
-        self.map = self.world.get_map()
         self.spawn_points = self.get_spawn_points()
         self.toogle_map_layers(on=False)
     
@@ -51,6 +55,8 @@ class CarlaClient(object):
         actor = self.spawn_actor(sensor_args, self.ego)
         if 'camera' in sensor_args.bp:
             sensor = Camera(actor, sensor_args)
+        if 'lidar' in sensor_args.bp:
+            sensor = Lidar(actor, sensor_args)
 
         sensor.save_path = os.path.join(self.args.output_path,
                                         self.args.map,
@@ -64,7 +70,7 @@ class CarlaClient(object):
         """
         # Spawn ego vehicle
         self._start_pose = random.choice(self.spawn_points)
-        self._waypoint = self.map.get_waypoint(self._start_pose.location)
+        self.current_w = self.map.get_waypoint(self._start_pose.location)
 
         self.ego = self.world.spawn_actor(self.bp_library.filter(self.args.ego.bp)[0],
                                           self._start_pose)
@@ -84,8 +90,9 @@ class CarlaClient(object):
         Ego vehicle follows predefined routes.
         Creates a new waypoint, and transforms the ego to that point.
         """
-        self._waypoint = random.choice(self._waypoint.next(0.5))
-        self.ego.set_transform(self._waypoint.transform)
+        self.next_w = random.choice(self.current_w.next(0.5))
+        self.ego.set_transform(self.current_w.transform)
+        self.current_w = self.next_w
 
     def get_world_settings(self):
         """

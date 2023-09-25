@@ -1,9 +1,8 @@
+from sim_params.sensors.front2bev import sensors
 from dan.utils import dict2obj
 
-from sim_params.sensors import sensors
-
 map = 'debug'
-test_id = "debug"
+test_id = 'debug'
 output_path = f"_dataset"
 
 ego = {
@@ -17,13 +16,15 @@ args = {
     "output_path": output_path,
 
     'map': map,
-    'remove_layers': [],
+    'reload_map': False,
+    'remove_layers': ['Bridge', 'Vegetation', 'Poles'],
     'ego': ego,
 
     'grid_size': [1,1],
     'window_size': (1024, 1024),
 
     'frames': -1,
+
 }    
 
 sim_args = dict2obj(args)
