@@ -6,21 +6,7 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
-"""
-Script that render multiple sensors in the same pygame window
-
-By default, it renders four cameras, one LiDAR and one Semantic LiDAR.
-It can easily be configure for any different number of sensors. 
-"""
-
-import glob
-import os
-import sys
-
-from utils.utils import create_path
-
-TEST_NAME = "TOWN01"
-test_path = create_path("_out", TEST_NAME)
+import sys, os, glob
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -30,13 +16,6 @@ try:
 except IndexError:
     pass
 
-import carla
-import argparse
-import random
-import time
-import numpy as np
-
-
 try:
     import pygame
     from pygame.locals import K_ESCAPE
@@ -44,8 +23,16 @@ try:
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 
-from utils import DisplayManager, SensorManager
-from utils.utils import CustomTimer
+import carla
+import argparse
+import random
+
+from tools.display_manager import DisplayManager
+from tools.sensor_manager import SensorManager
+
+test_path = ""
+
+from utils.utils import Timer
 
 def run_simulation(args, client):
     """This function performed one test run using the args parameters
@@ -55,7 +42,7 @@ def run_simulation(args, client):
     display_manager = None
     vehicle = None
     vehicle_list = []
-    timer = CustomTimer()
+    timer = Timer()
 
     try:
 
@@ -103,17 +90,17 @@ def run_simulation(args, client):
 
         # Display Manager organize all the sensors an its display in a window
         # If can easily configure the grid and the total window size
-        display_manager = DisplayManager(grid_size=[1, 1], window_size=[args.width, args.height])
+        display_manager = DisplayManager(grid_size=[1, 2], window_size=[args.width, args.height])
 
         # Then, SensorManager can be used to spawn RGBCamera, LiDARs and SemanticLiDARs as needed
         # and assign each of them to a grid position, 
         SensorManager(world, display_manager, 'RGBCamera', carla.Transform(carla.Location(x=0, z=2.0), carla.Rotation(yaw=+00)), 
-                      vehicle, {}, display_pos=[0, 0], save_dir = test_path,render_enabled=False)
+                      vehicle, {}, display_pos=[0, 0], save_dir = test_path, render_enabled=True)
        # SensorManager(world, display_manager, 'LiDAR', carla.Transform(carla.Location(x=0, z=2.0)), 
         #             vehicle, {'channels' : '1', 'range' : '100',  'points_per_second': '720',
          #                       'rotation_frequency': '20'}, display_pos=[0, 1], save_dir = test_path, render_enabled=False)
         SensorManager(world, display_manager, 'SemCamera', carla.Transform(carla.Location(x=0, z=32), carla.Rotation(yaw=+00, pitch=-90)), 
-                      vehicle, {}, save_dir = test_path, display_pos=[0, 0])
+                      vehicle, {}, save_dir = test_path, display_pos=[0, 1])
         
         #Simulation loop
         call_exit = False
