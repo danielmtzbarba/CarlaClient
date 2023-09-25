@@ -40,7 +40,7 @@ class CarlaClient(object):
         It also gets map, bp_library and spawn_points.
         Toggles off the defined map layers.
         """
-        self.world = self.client.load_world(self.args.map)
+        self.world = self.client.get_world()
         self.og_settings = self.get_world_settings()
         self.bp_library = self.world.get_blueprint_library()
         self.map = self.world.get_map()

@@ -8,7 +8,7 @@ try:
 except IndexError:
     pass
 
-import carla, pygame
+import pygame
 
 from simulation.sync_mode import CarlaSyncMode
 from simulation.display import Display

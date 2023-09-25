@@ -2,8 +2,8 @@ from dan.utils import dict2obj
 
 from sim_params.sensors import front_rgb_camera, bev_sem_camera
 
-map = 'TOWN01'
-test_id = "prueba"
+map = 'TOWN07'
+test_id = "debug"
 output_path = f"_dataset"
 
 ego = {
