@@ -54,6 +54,13 @@ class CarlaSyncMode(CarlaClient):
         return data
 
     def __exit__(self, *args, **kwargs):
+        
+        def destroy_queues():
+            for q in self._queues:
+                with q.mutex:
+                    q.queue.clear()
+                    
+        destroy_queues()
         self.destroy_actors()
         self.apply_world_settings(self.og_settings)
 

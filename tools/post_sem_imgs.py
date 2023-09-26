@@ -1,109 +1,72 @@
 import os
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
 
-RESULTS_PATH = Path("C:\\Users\\Danie\\OneDrive\\dan\\RESEARCH\\DATASETS\\CARLA_BEV")
 
-TEST_NAME = "TOWN01"
-DIM_BEV = (64, 64)
+from tqdm import tqdm
 
-TEST_PATH = RESULTS_PATH / TEST_NAME
+from dan.utils import make_folder
+from dan.utils.data import get_filenames_list
 
-RGB_IMG_PATH = TEST_PATH / "rgb"
-SEM_IMG_PATH = TEST_PATH / "sem"
-BEV_SAVE_PATH = TEST_PATH / "bev"
+DIM_BEV_OUT = (64, 64)
+MASK = cv2.imread(str(Path("assets") / "binary_bev_mask.jpg"), 0)
 
-mask = cv2.imread(str(Path("tools") / "binary_bev_mask.jpg"), 0)
-kernel = np.ones((7,7),np.uint8)
-mask_v2 = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-MASK = cv2.morphologyEx(mask_v2, cv2.MORPH_CLOSE, kernel)
-
-
-def list_test_imgs():
-    rgb_lst = os.listdir(RGB_IMG_PATH)
-    sem_lst = os.listdir(SEM_IMG_PATH)
-    lst = []
-    for im in rgb_lst:
-        if im in sem_lst:
-            lst.append(im)
-        else:
-            os.remove(str(RGB_IMG_PATH / im))
-    return lst
-
-def load_img(img_path):
-    return cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+def get_test_dirs(dataset_path):
+    maps = [ Path(f.path) for f in os.scandir(dataset_path) if f.is_dir() ]
+    tests = []
+    for map in maps:
+        tests.extend([ Path(f.path) for f in os.scandir(map) if f.is_dir() ])
+    return tests
 
 def mask_img(img):
     return cv2.bitwise_and(img,img,mask = MASK)
 
 def resize_img(img):
-    return cv2.resize(img, DIM_BEV, interpolation = cv2.INTER_NEAREST)
+    return cv2.resize(img, DIM_BEV_OUT, interpolation = cv2.INTER_NEAREST)
 
-def two_tag_segmentation(img):
+def remap_segmentation(img):
     h = img.shape[0]
     w = img.shape[1]
 
     # loop over the image
     for y in range(0, h):
         for x in range(0, w):
-            # threshold the pixel
             if img.item(y, x) == 0:
                 continue
             elif img.item(y, x) == 90:
-                img[y, x] = 1  # 255
+                img[y, x] = 1
             elif img.item(y, x) == 16:
-                img[y, x] =  2 # 50
+                img[y, x] =  2
+            elif img.item(y, x) == 190:
+                img[y, x] = 3
             else:
-                img[y, x] = 3  # 128
+                img[y, x] = 4
+
+    img[30:35, 32] = 5
+    
     return img
 
 def postprocess(img):
     masked = mask_img(img)
     resized = resize_img(masked)
-    segmented = two_tag_segmentation(resized)
+    segmented = remap_segmentation(resized)
     return segmented
 
-from random import randint
-from dan.graph_tools import histogram_grayscale, imshow_grayscale, compare_two_plots, compare_images
+def main(dataset_path):
 
-def debug(img):
-    histogram_grayscale(img, title="Histogram - Raw Segmented Image")
-    res = postprocess(img)
-    _ , ax1 = histogram_grayscale(res, title="Histogram - Post processed")
-    #_ , im1 = imshow_grayscale(res)
-    """
-    
-    with open('debug.npy', 'wb') as f:
-        np.save(f, res)
+    test_paths = get_test_dirs(dataset_path)
+    for test_path in tqdm(test_paths):
 
-    with open('debug.npy', 'rb') as f:
-        res_reloaded = np.load(f)
-    """
-    cv2.imwrite('debug.png', res)
-    res_reloaded = cv2.imread('debug.png', cv2.IMREAD_GRAYSCALE)
-    _ , ax2 = histogram_grayscale(res_reloaded, title="Histogram - Post processed, Saved and Loaded")
-    compare_images([res, res_reloaded])
-   # 
-    plt.show()
+        bev_raw_path = test_path / "bev"
+        save_bev = make_folder(test_path, "bev2")
 
-   
-DEBUG = False
+        bev_imgs = get_filenames_list(bev_raw_path, ".jpg")
+        for bev_img_name in tqdm(bev_imgs):
+            bev_img = cv2.imread(str(bev_raw_path / bev_img_name), cv2.IMREAD_GRAYSCALE)
+            bev_post = postprocess(bev_img)
+            cv2.imwrite(str(save_bev / bev_img_name).replace('.jpg', '.png'), bev_post)
 
 if __name__ == '__main__':
-    img_lst = list_test_imgs()
-    #
-    if DEBUG:
-        img_lst = [img_lst[randint(0, len(img_lst) - 1)]]
-    #
-    for img_name in img_lst:
-        img_path = SEM_IMG_PATH / img_name
-        img = load_img(str(img_path))
-        res = postprocess(img)
-        #
-        if DEBUG:
-            debug(img)
-        else:
-            img_name = img_name[:-4]
-            cv2.imwrite(str(BEV_SAVE_PATH  / img_name) + '.png', res)
+    root_path = Path("/media/aisyslab/ADATA HD710M PRO/DATASETS/Front2BEV/")
+    main(root_path)

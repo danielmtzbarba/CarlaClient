@@ -6,29 +6,11 @@ from carla import Transform, Location, Rotation
 from simulation.sensors.camera import Camera
 from simulation.sensors.lidar import Lidar
 
-map_layers = {
-    'Vegetation':  carla.CityObjectLabel.Vegetation,
-    'Buildings': carla.CityObjectLabel.Buildings,
-    'Bridge': carla.CityObjectLabel.Bridge,
-    'Walls': carla.CityObjectLabel.Walls,
-    'Fences': carla.CityObjectLabel.Fences,
-
-    'TraffiSigns': carla.CityObjectLabel.TrafficSigns,
-    'Poles': carla.CityObjectLabel.Poles,
-    'RoadLines': carla.CityObjectLabel.RoadLines,
-    'GuardRail': carla.CityObjectLabel.GuardRail,
-    'RailTrack': carla.CityObjectLabel.RailTrack,
-    'Static': carla.CityObjectLabel.Static,
-    'Dynamic': carla.CityObjectLabel.Dynamic, 
-    'Other': carla.CityObjectLabel.Other,
-}
-
 class CarlaClient(object):
-    actor_list = []
-    sensors = []
-    n_frame = 0
-
     def __init__(self):
+        self.actor_list = []
+        self.sensors = []
+        self.n_frame = 0
         self.client = carla.Client('localhost', 2000)
         self.client.set_timeout(5.0)
 
@@ -40,16 +22,14 @@ class CarlaClient(object):
         """
         Applies the args.world_args to the carla.WorldSettings.
         It also gets map, bp_library and spawn_points.
-        Toggles off the defined map layers.
         """
         self.world = self.client.get_world()
+        self.map = self.world.get_map()
         self.debug = self.world.debug
 
-        self.map = self.world.get_map()
         self.og_settings = self.get_world_settings()
         self.bp_library = self.world.get_blueprint_library()
         self.spawn_points = self.get_spawn_points()
-        self.toogle_map_layers(on=False)
     
     def sensor_setup(self, sensor_args):
         actor = self.spawn_actor(sensor_args, self.ego)
@@ -90,7 +70,9 @@ class CarlaClient(object):
         Ego vehicle follows predefined routes.
         Creates a new waypoint, and transforms the ego to that point.
         """
-        self.next_w = random.choice(self.current_w.next(0.5))
+        self.next_w = random.choice(
+            self.current_w.next(self.args.ego.speed))
+        
         self.ego.set_transform(self.current_w.transform)
         self.current_w = self.next_w
 
@@ -151,15 +133,6 @@ class CarlaClient(object):
         self.actor_list.append(actor)
         return actor
 
-    def toogle_map_layers(self, on=False):
-        """
-        Toggle off objects from specific environment layers.
-        """
-        for layer in self.args.remove_layers:      
-            layer_objs = self.world.get_environment_objects(map_layers[layer])
-            objects_to_toggle = {x.id for x in layer_objs}
-            self.world.enable_environment_objects(objects_to_toggle, on)
-    
     def destroy_actors(self):
         """
         Destroy all spawned actors during the simulation.

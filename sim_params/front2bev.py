@@ -1,7 +1,9 @@
 from sim_params.sensors.front2bev import sensors
 from dan.utils import dict2obj
 
-map = 'debug'
+map = 'Town01'
+map_config = 'all'
+
 test_id = 'debug'
 output_path = f"_dataset"
 
@@ -9,6 +11,7 @@ ego = {
     'bp': 'charger_2020',
     'sensors': sensors,
     'autopilot': False,
+    'speed': 1.0,
 }
 
 args = {
@@ -16,8 +19,7 @@ args = {
     "output_path": output_path,
 
     'map': map,
-    'reload_map': False,
-    'remove_layers': ['Bridge', 'Vegetation', 'Poles'],
+    'map_config': map_config,
     'ego': ego,
 
     'grid_size': [1,1],
