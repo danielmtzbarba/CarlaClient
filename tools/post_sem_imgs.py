@@ -25,6 +25,15 @@ def mask_img(img):
 def resize_img(img):
     return cv2.resize(img, DIM_BEV_OUT, interpolation = cv2.INTER_NEAREST)
 
+bev_map = {
+    0:   0,
+    90:  1, # Espacio Libre
+    16:  2, # Vehiculos
+    190: 3, # Lineas carril
+     1:  4,
+}
+
+
 def remap_segmentation(img):
     h = img.shape[0]
     w = img.shape[1]
