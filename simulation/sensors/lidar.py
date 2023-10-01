@@ -58,5 +58,5 @@ class Lidar(object):
     
     def save_frame(self):
         im = Image.fromarray(self._frame.img)
-        im.save(join(self.save_path, self.args.id, f"{self._n_frame}.jpg"))
+        im.save(join(self.save_path, f"{self._n_frame}.jpg"))
         self._n_frame += 1

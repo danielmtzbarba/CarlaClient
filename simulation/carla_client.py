@@ -40,7 +40,12 @@ class CarlaClient(object):
 
         sensor.save_path = os.path.join(self.args.output_path,
                                         self.args.map,
-                                        self.args.test_id)
+                                        self.args.test_id,
+                                        sensor_args.id)
+        
+        if sensor_args.id == 'bev':
+            sensor.save_path = os.path.join(sensor.save_path, "sem")
+        
         self.sensors.append(sensor)
 
     def ego_setup(self):

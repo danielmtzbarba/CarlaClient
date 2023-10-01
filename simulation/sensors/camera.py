@@ -35,7 +35,6 @@ class Camera(object):
     
     def save_frame(self):
         im_path = join(self.save_path,
-                    self.args.id,
                     f"{self._n_frame}.jpg")
         
         self._frame.save_to_disk(im_path)
