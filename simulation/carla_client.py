@@ -1,61 +1,92 @@
-import os
-import random
+import os, time, random
+
 import carla
 from carla import Transform, Location, Rotation
 
 from simulation.sensors.camera import Camera
+from simulation.sensors.lidar import Lidar
 
-map_layers = {
-    'Vegetation':  carla.CityObjectLabel.Vegetation,
-    'Buildings': carla.CityObjectLabel.Buildings,
-    'Bridge': carla.CityObjectLabel.Bridge,
-    'Walls': carla.CityObjectLabel.Walls,
-    'Fences': carla.CityObjectLabel.Fences,
-
-    'TraffiSigns': carla.CityObjectLabel.TrafficSigns,
-    'Poles': carla.CityObjectLabel.Poles,
-    'RoadLines': carla.CityObjectLabel.RoadLines,
-    'GuardRail': carla.CityObjectLabel.GuardRail,
-    'RailTrack': carla.CityObjectLabel.RailTrack,
-    'Static': carla.CityObjectLabel.Static,
-    'Dynamic': carla.CityObjectLabel.Dynamic, 
-    'Other': carla.CityObjectLabel.Other,
-}
+from simulation.generate_traffic import spawn_vehicles, spawn_walkers
 
 class CarlaClient(object):
-    actor_list = []
-    sensors = []
-
     def __init__(self):
+        self.n_frame = 0
+        self.vehicles = []
+        self.walkers = []
+        self.controllers = []
+        self.sensors = []
+
+        self.sensors_obj = []
+
+   
+        if self.args.seed is None:
+            self.args.seed = 42
+
+        random.seed(self.args.seed)
+
         self.client = carla.Client('localhost', 2000)
         self.client.set_timeout(5.0)
 
-        self.traffic_manager = self.client.get_trafficmanager(8000)
         self.world_setup()
+        self.traffic_setup()
         self.ego_setup()
+        self.spawn_traffic()
 
     def world_setup(self):
         """
         Applies the args.world_args to the carla.WorldSettings.
         It also gets map, bp_library and spawn_points.
-        Toggles off the defined map layers.
         """
         self.world = self.client.get_world()
-        self.og_settings = self.get_world_settings()
-        self.bp_library = self.world.get_blueprint_library()
+        self.og_settings = self.world.get_settings()
+
         self.map = self.world.get_map()
-        self.spawn_points = self.get_spawn_points()
-        self.toogle_map_layers(on=False)
+        self.debug = self.world.debug
+
+        self.bp_library = self.world.get_blueprint_library()
+        self.spawn_points = self.map.get_spawn_points()
+
+        self.world.set_pedestrians_seed(self.args.seed)
+
+    def traffic_setup(self):
+        self.traffic_manager = self.client.get_trafficmanager(self.args.traffic.tm_port)
+        self.traffic_manager.set_global_distance_to_leading_vehicle(2.5)
+
+        if self.args.traffic.tm_hybrid:
+            self.traffic_manager.set_hybrid_physics_mode(True)
+            self.traffic_manager.set_hybrid_physics_radius(70.0)
+        
+        self.traffic_manager.set_random_device_seed(self.args.seed)
+        self.traffic_manager.set_synchronous_mode(True)
+
+        self.traffic_manager.global_percentage_speed_difference(self.args.traffic.vehicle_speed)
+        self.world.set_pedestrians_cross_factor(self.args.traffic.percent_crossing)
     
+    # ----------------------------------------------------------------------  
     def sensor_setup(self, sensor_args):
-        actor = self.spawn_actor(sensor_args, self.ego)
+        bp = self.bp_library.find(sensor_args.bp)
+
+        for key, val in vars(sensor_args.params).items():
+            bp.set_attribute(key, val)
+            
+        transform = Transform(Location(*sensor_args.location),
+                               Rotation(*sensor_args.rotation))
+        
+        actor = self.world.spawn_actor(bp, transform, attach_to=self.ego)
         if 'camera' in sensor_args.bp:
             sensor = Camera(actor, sensor_args)
+        if 'lidar' in sensor_args.bp:
+            sensor = Lidar(actor, sensor_args)
 
         sensor.save_path = os.path.join(self.args.output_path,
                                         self.args.map,
-                                        self.args.test_id)
-        self.sensors.append(sensor)
+                                        self.args.test_id,
+                                        sensor_args.id)
+        
+        if sensor_args.id == 'bev':
+            sensor.save_path = os.path.join(sensor.save_path, "sem")
+        self.sensors.append(actor)
+        self.sensors_obj.append(sensor)
 
     def ego_setup(self):
         """
@@ -64,11 +95,12 @@ class CarlaClient(object):
         """
         # Spawn ego vehicle
         self._start_pose = random.choice(self.spawn_points)
-        self._waypoint = self.map.get_waypoint(self._start_pose.location)
+        self.current_w = self.map.get_waypoint(self._start_pose.location)
+        
+        ego_bp = self.bp_library.filter(self.args.ego.bp)[0]
+        ego_bp.set_attribute('role_name', 'hero')
 
-        self.ego = self.world.spawn_actor(self.bp_library.filter(self.args.ego.bp)[0],
-                                          self._start_pose)
-        self.actor_list.append(self.ego)
+        self.ego = self.world.spawn_actor(ego_bp, self._start_pose)
 
         # Spawn ego sensors
         for sensor_args in self.args.ego.sensors:
@@ -76,86 +108,76 @@ class CarlaClient(object):
 
         # Set carla autopilot
         if self.args.ego.autopilot:
-            tm_port = self.traffic_manager.get_port()
-            self.ego.set_autopilot(True, tm_port)
+            self.ego.set_autopilot(True, self.args.traffic.tm_port)
+        
+        self.traffic_manager.vehicle_percentage_speed_difference(self.ego,
+                                                        self.args.ego.speed)
+        
+        self.traffic_manager.ignore_lights_percentage(self.ego, 100.0)
+        
+        print('\nSpawned 1 ego vehicle and %d sensors.' % len(self.sensors))
+
     
     def ego_next_waypoint(self):
         """
         Ego vehicle follows predefined routes.
         Creates a new waypoint, and transforms the ego to that point.
         """
-        self._waypoint = random.choice(self._waypoint.next(0.5))
-        self.ego.set_transform(self._waypoint.transform)
-
-    def get_world_settings(self):
-        """
-        Wrapper of the WorldSettings getter function.
-
-        Returns:
-            Carla.WorldSettings: Object containing WorldSettings.
-        """
-        return self.world.get_settings()
-    
-    def apply_world_settings(self, settings):
-        """
-        Wrapper of the carla.WorldSettings setters function.
-        """
-        self.world.apply_settings(settings)
-    
-    def get_spawn_points(self):
-        """
-        Wrapper of the spawn points getter function.
-
-        Returns:
-            List: Contains map's spawn points.
-        """
-        return self.map.get_spawn_points()
-    
-    def spawn_actor(self, actor_args, attach_to=None):
-        """
-        Spawn an actor in the specified coordinates.
+        self.next_w = random.choice(
+            self.current_w.next(self.args.ego.speed))
         
-        Args:
-            actor_args (obj):  Object with attributes the following attributes:
+        self.ego.set_transform(self.current_w.transform)
+        self.current_w = self.next_w
 
-                bp: String of the blueprint's base_type. 
-                params: Additional parameters for the actor blueprints 
-                transform: Actor's spawn coordinates (location and rotation).
-            
-            attach_to: (carla.Actor): Useful for sensors. Attach to another actor. 
-                
-        Returns:
-            carla.Actor
-        """
-        bp = self.bp_library.find(actor_args.bp)
-        for key, val in vars(actor_args.params).items():
-            bp.set_attribute(key, val)
-            
-        transform = Transform(Location(*actor_args.location),
-                               Rotation(*actor_args.rotation))
-        # Spawn sensors.
-        if attach_to:
-            actor = self.world.spawn_actor(bp, transform, attach_to=attach_to)
+# ----------------------------------------------------------------------
+    def spawn_traffic(self):
 
-        # Spawn other actors (Vehicles, etc.)
-        else:
-            actor = self.world.spawn_actor(bp, transform)
+        # Spawn vehicles
+        vehicles_list = spawn_vehicles(self.args.traffic, self.client,
+                                        self.bp_library, self.spawn_points)
+        
+        self.vehicles.extend(self.world.get_actors(vehicles_list))
+        print('Spawned %d vehicles.' % (len(self.vehicles) - 1))
 
-        self.actor_list.append(actor)
-        return actor
+        # Spawn Walkers
+        (self.walkers,
+         walkers_speed,
+         self.controllers) = spawn_walkers(self.args.traffic, self.client, 
+                                               self.world, self.bp_library)
+        
+        # Initialize walkers controllers and set target to walk 
+        for walker_controller, speed in zip(self.controllers, walkers_speed):
+            # start walker
+            walker_controller.start()
+            # set walk to random point
+            walker_controller.go_to_location(self.world.get_random_location_from_navigation())
+            # max speed
+            walker_controller.set_max_speed(float(speed))
 
-    def toogle_map_layers(self, on=False):
-        """
-        Toggle off objects from specific environment layers.
-        """
-        for layer in self.args.remove_layers:      
-            layer_objs = self.world.get_environment_objects(map_layers[layer])
-            objects_to_toggle = {x.id for x in layer_objs}
-            self.world.enable_environment_objects(objects_to_toggle, on)
-    
+        print('Spawned %d walkers and %d controllers, press Ctrl+C to exit.'
+               % (len(self.walkers), len(self.controllers)))
+        
+    # ----------------------------------------------------------------------
+    def stop_controllers(self):
+        # Stop controllers 
+        for walker_controller in self.controllers:
+            walker_controller.stop()
+
     def destroy_actors(self):
         """
         Destroy all spawned actors during the simulation.
         """
-        for actor in self.actor_list:
-            actor.destroy()
+        print('\nDestroying ego and %d sensors...' % len(self.sensors))
+        self.client.apply_batch([carla.command.DestroyActor(self.ego.id)])
+        self.client.apply_batch([carla.command.DestroyActor(x.id) for x in self.sensors])
+
+        print('Destroying %d walker_controllers...' % len(self.controllers))
+        self.client.apply_batch([carla.command.DestroyActor(x.id) for x in self.controllers])
+
+        print('Destroying %d walkers...' % len(self.walkers))
+        self.client.apply_batch([carla.command.DestroyActor(x.id) for x in self.walkers])
+
+        print('Destroying %d vehicles...' % len(self.vehicles))
+        self.client.apply_batch([carla.command.DestroyActor(x.id) for x in self.vehicles])
+
+        print('\nDone.')

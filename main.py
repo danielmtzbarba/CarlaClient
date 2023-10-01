@@ -1,11 +1,13 @@
-from simulation import Simulation
-from sim_params.default import sim_args
+from simulation import start_simulation
+from sim_params.front2bev import sim_args
 
-from utils import make_test_dir
+sim_args.reload_map = True
+sim_args.map = 'Town03'
+sim_args.map_config = "layers_all"
+sim_args.test_id = "debug"
 
-try:
-    make_test_dir(sim_args)
-    Simulation(sim_args).run()
+sim_args.output_path = "/media/dan/BICHO/Datasets/Dan-2023-Front2BEV"
+sim_args.frames = 2000
 
-except KeyboardInterrupt:
-    print('\nSimulation interrupted by user.')
+if __name__ == '__main__':
+    start_simulation(sim_args)
