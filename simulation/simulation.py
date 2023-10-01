@@ -40,7 +40,8 @@ class Simulation(object):
                         return
                     self.display.clock.tick()
 
-                    sync_mode.ego_next_waypoint()
+                    if not self.args.ego.autopilot:
+                        sync_mode.ego_next_waypoint()
 
                     # Advance the simulation and wait for the data.
                     (snapshot, front_rgb, front_sem, front_rgbd,

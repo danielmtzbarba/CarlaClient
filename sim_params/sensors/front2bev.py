@@ -1,6 +1,7 @@
 front_rgb_camera = {
     "id": 'rgb',
     "bp": 'sensor.camera.rgb',
+
     "location": (0.0, 0.0, 2.0),
     'rotation': (0.0, 0.0, 0.0),
 
@@ -16,6 +17,7 @@ front_rgb_camera = {
 front_sem_camera = {
     "id": 'sem',
     "bp": 'sensor.camera.semantic_segmentation',
+    
     "location": (0.0, 0.0, 2.0),
     'rotation': (0.0, 0.0, 0.0),
 

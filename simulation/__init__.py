@@ -7,10 +7,15 @@ def start_simulation(sim_args):
     Args:
         sim_args (_type_): _description_
     """
-
-    # First load empty map, and load
-    # the necessary layers.
-    load_map(sim_args)
+    
+    #  Reload map?
+    if sim_args.reload_map:
+        # First load empty map, then, 
+        # load configured layers.
+        load_map(sim_args)
+    
+    if sim_args.test_id == "debug":
+        sim_args.map = "debug"
 
     # Create the test output directory.
     make_test_dir(sim_args)

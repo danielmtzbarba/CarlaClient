@@ -1,8 +1,9 @@
 from sim_params.sensors.front2bev import sensors
 from dan.utils import dict2obj
 
+reload_map = True
 map = 'Town01'
-map_config = 'all'
+map_config = 'layers_all'
 
 test_id = 'debug'
 output_path = f"_dataset"
@@ -10,23 +11,40 @@ output_path = f"_dataset"
 ego = {
     'bp': 'charger_2020',
     'sensors': sensors,
-    'autopilot': False,
-    'speed': 1.0,
+    'autopilot': True,
+    'speed': 0.0,
+}
+
+traffic = {
+    'tm_port': 8000,
+    'tm_hybrid': True,
+
+    'n_vehicles': 30,
+    'filterv': 'vehicle.*',
+    'vehicle_speed': 0.0,
+
+    'n_walkers': 50,
+    'filterw': 'walker.pedestrian.*',
+    'percent_running': 0.1,
+    'percent_crossing': 0.1,
 }
 
 args = {
+    "seed": 42,
     "test_id": test_id,
     "output_path": output_path,
 
+    'reload_map': reload_map,
     'map': map,
     'map_config': map_config,
+
     'ego': ego,
+    'traffic': traffic,
 
     'grid_size': [1,1],
     'window_size': (1024, 1024),
 
     'frames': -1,
-
 }    
 
 sim_args = dict2obj(args)
