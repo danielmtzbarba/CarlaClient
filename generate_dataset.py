@@ -2,7 +2,7 @@ from simulation import start_simulation
 from sim_params.front2bev import sim_args
 from simulation.map import maps
 
-sim_args.output_path = f"/media/aisyslab/ADATA HD710M PRO/DATASETS/Front2BEV/"
+sim_args.output_path = f"/media/aisyslab/BICHO/DATASETS/Front2BEV/"
 
 map_configs = [['layers_none', 2000],
                ['layers_all', 2000]]

@@ -6,7 +6,7 @@ from carla import Transform, Location, Rotation
 from simulation.sensors.camera import Camera
 from simulation.sensors.lidar import Lidar
 
-from simulation.generate_traffic import spawn_vehicles, spawn_walkers
+import simulation.traffic as traffic
 
 class CarlaClient(object):
     def __init__(self):
@@ -25,7 +25,7 @@ class CarlaClient(object):
         random.seed(self.args.seed)
 
         self.client = carla.Client('localhost', 2000)
-        self.client.set_timeout(5.0)
+        self.client.set_timeout(10.0)
 
         self.world_setup()
         self.traffic_setup()
@@ -131,18 +131,20 @@ class CarlaClient(object):
 
 # ----------------------------------------------------------------------
     def spawn_traffic(self):
+        # Change traffic light config
+        traffic.change_traffic_light_timings(self.world)
 
         # Spawn vehicles
-        vehicles_list = spawn_vehicles(self.args.traffic, self.client,
+        vehicles_list = traffic.spawn_vehicles(self.args.traffic, self.client,
                                         self.bp_library, self.spawn_points)
         
         self.vehicles.extend(self.world.get_actors(vehicles_list))
-        print('Spawned %d vehicles.' % (len(self.vehicles) - 1))
+        print('Spawned %d vehicles.' % (len(self.vehicles)))
 
         # Spawn Walkers
         (self.walkers,
          walkers_speed,
-         self.controllers) = spawn_walkers(self.args.traffic, self.client, 
+         self.controllers) = traffic.spawn_walkers(self.args.traffic, self.client, 
                                                self.world, self.bp_library)
         
         # Initialize walkers controllers and set target to walk 

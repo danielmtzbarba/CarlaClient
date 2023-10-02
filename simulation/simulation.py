@@ -45,10 +45,10 @@ class Simulation(object):
 
                     # Advance the simulation and wait for the data.
                     (snapshot, front_rgb, front_sem, front_rgbd,
-                     image_bev, lidar_img) = sync_mode.tick(timeout=2.0)
+                     image_bev, lidar_img) = sync_mode.tick(timeout=10.0)
 
                     # Draw the pygame display.
-                    self.display.draw_display(snapshot, image_bev)
+                    self.display.draw_display(snapshot, front_rgb)
                     # Update the pygame display
                     self.display.update()
 

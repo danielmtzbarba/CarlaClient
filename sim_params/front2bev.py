@@ -12,18 +12,18 @@ ego = {
     'bp': 'charger_2020',
     'sensors': sensors,
     'autopilot': True,
-    'speed': 0.0,
+    'speed': -15.0,
 }
 
 traffic = {
     'tm_port': 8000,
-    'tm_hybrid': True,
+    'tm_hybrid': False,
 
-    'n_vehicles': 30,
+    'n_vehicles': 100,
     'filterv': 'vehicle.*',
-    'vehicle_speed': 0.0,
+    'vehicle_speed': -20.0,
 
-    'n_walkers': 50,
+    'n_walkers': 100,
     'filterw': 'walker.pedestrian.*',
     'percent_running': 0.1,
     'percent_crossing': 0.1,
