@@ -1,0 +1,8 @@
+Town01: 100v 100w
+Town02: 50v 50w
+Town03: 100v 50w
+Town04: 200v 50w
+Town05: 125v 50w
+Town06: 100v 50w
+Town07: 50v 50w
+Town10HD: 100v 100w

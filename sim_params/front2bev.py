@@ -19,7 +19,7 @@ traffic = {
     'tm_port': 8000,
     'tm_hybrid': False,
 
-    'n_vehicles': 100,
+    'n_vehicles': 50,
     'filterv': 'vehicle.*',
     'vehicle_speed': -20.0,
 
@@ -30,7 +30,7 @@ traffic = {
 }
 
 args = {
-    "seed": 42,
+    "seed": 35,
     "test_id": test_id,
     "output_path": output_path,
 
