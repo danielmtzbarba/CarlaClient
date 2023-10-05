@@ -6,7 +6,7 @@ sim_args.map = 'Town10HD'
 sim_args.map_config = "layers_all"
 sim_args.test_id = "traffic"
 
-sim_args.output_path = "/media/aisyslab/BICHO/Datasets/Dan-2023-Front2BEV"
+sim_args.output_path = "/media/aisyslab/dan/Datasets/Dan-2023-Front2BEV"
 sim_args.frames = 3000
 
 save = True
