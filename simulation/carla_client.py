@@ -18,7 +18,6 @@ class CarlaClient(object):
 
         self.sensors_obj = []
 
-   
         if self.args.seed is None:
             self.args.seed = 42
 
@@ -30,7 +29,8 @@ class CarlaClient(object):
         self.world_setup()
         self.traffic_setup()
         self.ego_setup()
-        self.spawn_traffic()
+        if self.args.traffic.spawn_traffic:
+            self.spawn_traffic()
 
     def world_setup(self):
         """
@@ -85,6 +85,7 @@ class CarlaClient(object):
         
         if sensor_args.id == 'bev':
             sensor.save_path = os.path.join(sensor.save_path, "sem")
+
         self.sensors.append(actor)
         self.sensors_obj.append(sensor)
 
@@ -164,7 +165,7 @@ class CarlaClient(object):
         # Stop controllers 
         for walker_controller in self.controllers:
             walker_controller.stop()
-
+    
     def destroy_actors(self):
         """
         Destroy all spawned actors during the simulation.

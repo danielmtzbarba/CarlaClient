@@ -16,6 +16,7 @@ ego = {
 }
 
 traffic = {
+    'spawn_traffic': False,
     'tm_port': 8000,
     'tm_hybrid': False,
 
