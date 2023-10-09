@@ -28,7 +28,8 @@ class Simulation(object):
     
     def run(self):
         pygame.init()
-        self.display = Display(self.args.window_size)
+        if self.args.display:
+            self.display = Display(self.args.window_size)
         try:
 
             # Create a synchronous mode context.
@@ -36,9 +37,8 @@ class Simulation(object):
                 # Simulation loop
                 while True:
 
-                    if self.exit_sim():
+                    if self.exit_sim() or sync_mode.exit:
                         return
-                    self.display.clock.tick()
 
                     if not self.args.ego.autopilot:
                         sync_mode.ego_next_waypoint()
@@ -46,10 +46,13 @@ class Simulation(object):
                     # Advance the simulation and wait for the data.
                     data = sync_mode.tick(timeout=10.0)
 
-                    # Draw the pygame display.
-                 #   self.display.draw_display(snapshot, front_rgb)
-                    # Update the pygame display
-                    self.display.update()
+                    if self.args.display:
+                        # Draw the pygame display.
+                        self.display.clock.tick()
+
+                        self.display.draw_display(data[0], data[1])
+                        # Update the pygame display
+                        self.display.update()
 
                     if sync_mode.n_frame == self.args.frames:
                         return

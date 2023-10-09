@@ -1,4 +1,4 @@
-from sim_params.sensors.all_sensors import sensors
+from sim_params.sensors.front2bev import sensors
 from dan.utils import dict2obj
 
 reload_map = True
@@ -7,11 +7,13 @@ map_config = 'layers_all'
 
 test_id = 'debug'
 output_path = f"_dataset"
+route = 'sim_params/routes/front2bev_town03.npy'
 
 ego = {
     'bp': 'charger_2020',
     'sensors': sensors,
     'autopilot': False,
+    'route': route,
     'speed': 2.0,
 }
 
@@ -41,7 +43,9 @@ args = {
 
     'ego': ego,
     'traffic': traffic,
+    'exit_after_route': True,
 
+    'display': False,
     'grid_size': [1,1],
     'window_size': (1024, 1024),
 

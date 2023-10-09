@@ -1,4 +1,5 @@
 import os, time, random
+import numpy as np
 
 import carla
 from carla import Transform, Location, Rotation
@@ -7,9 +8,11 @@ from simulation.sensors.camera import Camera
 from simulation.sensors.lidar import Lidar
 
 import simulation.traffic as traffic
+from simulation.route_planner import route_planner
 
 class CarlaClient(object):
     def __init__(self):
+        self.exit = False
         self.n_frame = 0
         self.vehicles = []
         self.walkers = []
@@ -62,7 +65,7 @@ class CarlaClient(object):
 
         self.world.set_pedestrians_cross_factor(self.args.traffic.percent_crossing)
     
-    # ----------------------------------------------------------------------  
+    # ---------------------------------------------------------------------- 
     def sensor_setup(self, sensor_args):
         bp = self.bp_library.find(sensor_args.bp)
 
@@ -94,14 +97,20 @@ class CarlaClient(object):
         Sets a random start pose and spawns the ego.
         It also spawns and attachs the args.ego.sensors.
         """
+        self._ego_route, self._route_wps = [], []
+
+        if self.args.ego.route:
+            start_pose = self.ego_route_setup()
+        else:
+            start_pose = random.choice(self.spawn_points)
+    
+        self.current_w = self.map.get_waypoint(start_pose.location)
+
         # Spawn ego vehicle
-        self._start_pose = random.choice(self.spawn_points)
-        self.current_w = self.map.get_waypoint(self._start_pose.location)
-        
         ego_bp = self.bp_library.filter(self.args.ego.bp)[0]
         ego_bp.set_attribute('role_name', 'hero')
 
-        self.ego = self.world.spawn_actor(ego_bp, self._start_pose)
+        self.ego = self.world.spawn_actor(ego_bp, start_pose)
 
         # Spawn ego sensors
         for sensor_args in self.args.ego.sensors:
@@ -118,17 +127,35 @@ class CarlaClient(object):
         
         print('\nSpawned 1 ego vehicle and %d sensors.' % len(self.sensors))
 
-    
+    def ego_route_setup(self):
+        route = np.load(self.args.ego.route)
+        
+        for i, p in enumerate(route):
+            self._ego_route.append(carla.Location(p[0], p[1], p[2]))
+        
+        start_pose = carla.Transform(self._ego_route[0], carla.Rotation(0, 180, 0))
+        return start_pose
+        
     def ego_next_waypoint(self):
         """
         Ego vehicle follows predefined routes.
         Creates a new waypoint, and transforms the ego to that point.
         """
-        self.next_w = random.choice(
-            self.current_w.next(self.args.ego.speed))
-        
+        if len(self._ego_route) > 0:
+            if len(self._route_wps) < 1:
+                next_route_loc = self._ego_route.pop(0)
+                self._route_wps.extend(
+                    route_planner(self.map, self.current_w.transform.location, 
+                                  next_route_loc))
+            next_w = self._route_wps.pop(0)
+
+        else:
+            if self.args.exit_after_route:
+                self.exit = True
+            next_w = random.choice(self.current_w.next(self.args.ego.speed))
+            
         self.ego.set_transform(self.current_w.transform)
-        self.current_w = self.next_w
+        self.current_w = next_w
 
 # ----------------------------------------------------------------------
     def spawn_traffic(self):
