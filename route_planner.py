@@ -1,6 +1,7 @@
 import carla
 import random
 import time
+import numpy as np
 
 from agents.navigation.global_route_planner import GlobalRoutePlanner
 
@@ -14,21 +15,26 @@ def lane_waypoints(current_waypoint, dist):
     return next_waypoint
 
 def route_planner(map, a, b):
-    sampling_resolution = 20
+    a = carla.Location(a[0], a[1], a[2])
+    b = carla.Location(b[0], b[1], b[2])
+
+    sampling_resolution = 5
     grp = GlobalRoutePlanner(map, sampling_resolution)
     w1 = grp.trace_route(a, b)
     i = 0
 
     for w in w1:
         if i % 10 == 0:
-            world.debug.draw_string(w[0].transform.location, '.', draw_shadow=False,
+            world.debug.draw_string(w[0].transform.location, 'o', draw_shadow=False,
             color=carla.Color(r=255, g=0, b=0), life_time=20.0,
             persistent_lines=False)
         else:
-            world.debug.draw_string(w[0].transform.location, '.', draw_shadow=False,
+            world.debug.draw_string(w[0].transform.location, 'o', draw_shadow=False,
             color = carla.Color(r=0, g=0, b=255), life_time=20.0,
             persistent_lines=False)
         i += 1
+        time.sleep(0.05)
+    return [w[0].transform.location.x, w[0].transform.location.y, w[0].transform.location.z]
 
 
 client = carla.Client("localhost", 2000)
@@ -43,10 +49,9 @@ else:
 map = world.get_map()
 spawn_points = map.get_spawn_points()
 # -------------------------------------------
-def plot_points(point_list, color=carla.Color(r=255, g=255, b=0)):
-    for i, point in enumerate(point_list):
-        world.debug.draw_string(point, str(i), draw_shadow=False,
-                color=color, life_time=10.0,
+def plot_points(point, id ,color=carla.Color(r=255, g=255, b=0)):
+        world.debug.draw_string(point, str(id), draw_shadow=False,
+                color=color, life_time=30.0,
                 persistent_lines=False)
 
 
@@ -73,11 +78,44 @@ def advance(waypoint, n, dist):
 
 origin = carla.Location(0.0, 0.0, 0.0)
 current_waypoint =  map.get_waypoint(origin)
-waypoints.append(current_waypoint)
+
 
 world.debug.draw_string(origin, 'o', draw_shadow=False,
             color=carla.Color(r=255, g=0, b=0), life_time=20.0,
             persistent_lines=False)
+
+waypoints = []
+road_wps = map.get_topology()
+i = 0
+for road in road_wps:
+    for point in road:
+        point = point.transform.location
+        if point not in waypoints:
+        #    plot_points(point, i)
+            waypoints.append(point)
+            i += 1
+
+wp_order = [69, 61, 71, 80, 66, 38, 51, 8, 36, 25, 85, 32, 16, 45, 67, 5, 28, 59, 75, 69]
+
+route = []
+for j in wp_order:
+    aux = waypoints[j]
+    route.append([aux.x, aux.y, aux.z])
+
+route = np.array(route)
+a = route[0]
+for i, p in enumerate(route):
+   # plot_points(carla.Location(p[0], p[1], p[2]),i)
+   a = route_planner(map, a, p)
+
+print(route)
+
+
+
+'''
+
+with open('route-0_town01.npy', 'wb') as f:
+    np.save(f, route)
 
 a = carla.Location(origin)
 b = carla.Location(0.0, 325.0, 0.0)
@@ -104,15 +142,6 @@ s = carla.Location(0.0, 0.0, 0.0)
 plot_points([a, b, c, d, e, f, g, h, i,
              j, k, l, m, n, o, p, q, r,
              s, ])
-
-
-'''
-for points in range(n_points):
-    current_waypoint = advance(current_waypoint, 5, dist)
-    waypoints_l = current_waypoint.next_until_lane_end(dist)
-    current_waypoint = traverse_lane(waypoints_l)
-    waypoints_l = current_waypoint.previous_until_lane_start(dist)
-    current_waypoint = traverse_lane(waypoints_l)
 
 
 '''

@@ -1,7 +1,7 @@
 from simulation import start_simulation
 from sim_params.front2bev import sim_args
 
-sim_args.reload_map = True
+sim_args.reload_map = False
 sim_args.map = 'Town01'
 sim_args.map_config = "layers_none"
 sim_args.test_id = "debug"

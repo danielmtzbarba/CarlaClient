@@ -29,6 +29,7 @@ class CarlaClient(object):
         self.world_setup()
         self.traffic_setup()
         self.ego_setup()
+
         if self.args.traffic.spawn_traffic:
             self.spawn_traffic()
 
@@ -59,7 +60,6 @@ class CarlaClient(object):
         self.traffic_manager.set_random_device_seed(self.args.seed)
         self.traffic_manager.set_synchronous_mode(True)
 
-        self.traffic_manager.global_percentage_speed_difference(self.args.traffic.vehicle_speed)
         self.world.set_pedestrians_cross_factor(self.args.traffic.percent_crossing)
     
     # ----------------------------------------------------------------------  

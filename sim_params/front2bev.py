@@ -1,4 +1,4 @@
-from sim_params.sensors.front2bev import sensors
+from sim_params.sensors.all_sensors import sensors
 from dan.utils import dict2obj
 
 reload_map = True
@@ -11,8 +11,8 @@ output_path = f"_dataset"
 ego = {
     'bp': 'charger_2020',
     'sensors': sensors,
-    'autopilot': True,
-    'speed': -15.0,
+    'autopilot': False,
+    'speed': 2.0,
 }
 
 traffic = {
