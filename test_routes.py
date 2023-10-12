@@ -68,7 +68,7 @@ def load_map(reload_map: bool, map_name: str):
 client = carla.Client("localhost", 2000)
 client.set_timeout(10)
 
-reload_map, map_name = False, 'Town02_Opt'
+reload_map, map_name = False, 'Town03_Opt'
 
 world = load_map(reload_map, map_name)
 map = world.get_map()
@@ -89,12 +89,12 @@ for road in road_wps:
         ids.append(id)
         i += 1
         
-town_02_route_idx = [56, 32, 34, 26, 4, 51, 4, 21, 31, 42, 56, 16]
+town_03_route_idx = [159, 169, 12, 281, 109, 257, 75, 33, 80, 0, 195, 153, 261, 135, 98, 156, 159, 169]
 
-a = waypoints[56]
+a = waypoints[159]
 
 route = []
-for i, wp_idx in enumerate(town_02_route_idx):
+for i, wp_idx in enumerate(town_03_route_idx):
     aux = waypoints[wp_idx]
     if i == 0:
         z = 0.3
@@ -106,7 +106,7 @@ for i, wp_idx in enumerate(town_02_route_idx):
 
 route = np.array(route)
 
-with open(f'sim_params/routes/front2bev_town02.npy', 'wb') as f:
+with open(f'sim_params/routes/front2bev_town03.npy', 'wb') as f:
     np.save(f, route)
 
 
@@ -115,6 +115,7 @@ with open(f'sim_params/routes/front2bev_town02.npy', 'wb') as f:
 '''
 
 town_01_route_idx = [45, 63, 69, 78, 17, 39, 20, 36, 71, 75, 2, 33, 45, 63]
+town_02_route_idx = [56, 32, 34, 26, 4, 51, 4, 21, 31, 42, 56, 16]
 
 
 
