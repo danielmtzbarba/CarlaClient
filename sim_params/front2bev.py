@@ -7,7 +7,7 @@ map_config = 'layers_all'
 
 test_id = 'debug'
 output_path = f"_dataset"
-route = 'sim_params/routes/front2bev_town03.npy'
+route = 'sim_params/routes/front2bev_town01.npy'
 
 ego = {
     'bp': 'charger_2020',

@@ -15,7 +15,7 @@ def lane_waypoints(current_waypoint, dist):
     return next_waypoint
 
 def route_planner(map, a, b):
-    sampling_resolution = 1
+    sampling_resolution = 5
     grp = GlobalRoutePlanner(map, sampling_resolution)
     w1 = grp.trace_route(a, b)
     i = 0
@@ -30,14 +30,25 @@ def route_planner(map, a, b):
             color = carla.Color(r=0, g=0, b=255), life_time=5.0,
             persistent_lines=False)
         i += 1
-        time.sleep(0.001)
+        time.sleep(0.01)
     return w[0].transform.location
 
 # -------------------------------------------
 def plot_points(point, id ,color=carla.Color(r=255, g=255, b=0)):
         world.debug.draw_string(point, str(id), draw_shadow=False,
-                color=color, life_time=30.0,
+                color=color, life_time=10.0,
                 persistent_lines=False)
+    
+def are_same_point(point, point_list, tsh):
+
+    point = np.array((point.x, point.y))
+    
+    for p in point_list:
+        p = np.array((p.x, p.y))
+        dist = np.linalg.norm(point - p)
+        if dist < tsh:
+            return True
+    return False
 
 # -------------------------------------------
 def load_map(reload_map: bool, map_name: str):
@@ -57,31 +68,33 @@ def load_map(reload_map: bool, map_name: str):
 client = carla.Client("localhost", 2000)
 client.set_timeout(10)
 
-reload_map, map_name = False, 'Town04_Opt'
+reload_map, map_name = False, 'Town02_Opt'
 
 world = load_map(reload_map, map_name)
 map = world.get_map()
 spawn_points = map.get_spawn_points()
 
-
+ids = []
 waypoints = []
 road_wps = map.get_topology()
 i = 0
 for road in road_wps:
-    #for point in road:
-        point = road[0]
-        point = point.transform.location
+    point = road[0]
+    id = point.id
+    point = point.transform.location
+
+    if not are_same_point(point, waypoints, 2):
         plot_points(point, i)
         waypoints.append(point)
+        ids.append(id)
         i += 1
         
+town_02_route_idx = [56, 32, 34, 26, 4, 51, 4, 21, 31, 42, 56, 16]
 
-town_04_route_idx = [351, 263, 299, 308, 318, 326, 185, 366, 115, 360, 404, 423,
-                     334, 293, 342, ]
-a = waypoints[351]
+a = waypoints[56]
 
 route = []
-for i, wp_idx in enumerate(town_04_route_idx):
+for i, wp_idx in enumerate(town_02_route_idx):
     aux = waypoints[wp_idx]
     if i == 0:
         z = 0.3
@@ -93,7 +106,7 @@ for i, wp_idx in enumerate(town_04_route_idx):
 
 route = np.array(route)
 
-with open(f'sim_params/routes/front2bev_town04.npy', 'wb') as f:
+with open(f'sim_params/routes/front2bev_town02.npy', 'wb') as f:
     np.save(f, route)
 
 
@@ -101,10 +114,8 @@ with open(f'sim_params/routes/front2bev_town04.npy', 'wb') as f:
 
 '''
 
-town_01_route_idx = [68, 62, 74, 77, 38, 51, 8, 42, 25, 85, 32, 16, 88, 6, 28, 59, 76, 68]
-town_02_route_idx = [33, 27, 65, 47, 62, 68, 67, 6, 60, 48, 32, 33]
+town_01_route_idx = [45, 63, 69, 78, 17, 39, 20, 36, 71, 75, 2, 33, 45, 63]
 
-town_03_route_idx = [165, 238, 146, 145, 259, 280, 292, 66, 73, 91, 1, 154, 105, 234, 235, 203, 165, 160]
 
 
 
