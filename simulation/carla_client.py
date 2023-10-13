@@ -1,4 +1,5 @@
 import os, time, random
+import numpy as np
 
 import carla
 from carla import Transform, Location, Rotation
@@ -6,10 +7,12 @@ from carla import Transform, Location, Rotation
 from simulation.sensors.camera import Camera
 from simulation.sensors.lidar import Lidar
 
-from simulation.generate_traffic import spawn_vehicles, spawn_walkers
+import simulation.traffic as traffic
+from simulation.route_planner import route_planner
 
 class CarlaClient(object):
     def __init__(self):
+        self.exit = False
         self.n_frame = 0
         self.vehicles = []
         self.walkers = []
@@ -18,19 +21,20 @@ class CarlaClient(object):
 
         self.sensors_obj = []
 
-   
         if self.args.seed is None:
             self.args.seed = 42
 
         random.seed(self.args.seed)
 
         self.client = carla.Client('localhost', 2000)
-        self.client.set_timeout(5.0)
+        self.client.set_timeout(10.0)
 
         self.world_setup()
         self.traffic_setup()
         self.ego_setup()
-        self.spawn_traffic()
+
+        if self.args.traffic.spawn_traffic:
+            self.spawn_traffic()
 
     def world_setup(self):
         """
@@ -59,10 +63,9 @@ class CarlaClient(object):
         self.traffic_manager.set_random_device_seed(self.args.seed)
         self.traffic_manager.set_synchronous_mode(True)
 
-        self.traffic_manager.global_percentage_speed_difference(self.args.traffic.vehicle_speed)
         self.world.set_pedestrians_cross_factor(self.args.traffic.percent_crossing)
     
-    # ----------------------------------------------------------------------  
+    # ---------------------------------------------------------------------- 
     def sensor_setup(self, sensor_args):
         bp = self.bp_library.find(sensor_args.bp)
 
@@ -85,6 +88,7 @@ class CarlaClient(object):
         
         if sensor_args.id == 'bev':
             sensor.save_path = os.path.join(sensor.save_path, "sem")
+
         self.sensors.append(actor)
         self.sensors_obj.append(sensor)
 
@@ -93,14 +97,20 @@ class CarlaClient(object):
         Sets a random start pose and spawns the ego.
         It also spawns and attachs the args.ego.sensors.
         """
+        self._ego_route, self._route_wps = [], []
+
+        if self.args.ego.route:
+            start_pose = self.ego_route_setup()
+        else:
+            start_pose = random.choice(self.spawn_points)
+    
+        self.current_w = self.map.get_waypoint(start_pose.location)
+
         # Spawn ego vehicle
-        self._start_pose = random.choice(self.spawn_points)
-        self.current_w = self.map.get_waypoint(self._start_pose.location)
-        
         ego_bp = self.bp_library.filter(self.args.ego.bp)[0]
         ego_bp.set_attribute('role_name', 'hero')
 
-        self.ego = self.world.spawn_actor(ego_bp, self._start_pose)
+        self.ego = self.world.spawn_actor(ego_bp, start_pose)
 
         # Spawn ego sensors
         for sensor_args in self.args.ego.sensors:
@@ -117,32 +127,52 @@ class CarlaClient(object):
         
         print('\nSpawned 1 ego vehicle and %d sensors.' % len(self.sensors))
 
-    
+    def ego_route_setup(self):
+        route = np.load(self.args.ego.route)
+        
+        for i, p in enumerate(route):
+            self._ego_route.append(carla.Location(p[0], p[1], p[2]))
+        
+        start_pose = carla.Transform(self._ego_route[0], carla.Rotation(0, 180, 0))
+        return start_pose
+        
     def ego_next_waypoint(self):
         """
         Ego vehicle follows predefined routes.
         Creates a new waypoint, and transforms the ego to that point.
         """
-        self.next_w = random.choice(
-            self.current_w.next(self.args.ego.speed))
-        
+        if len(self._ego_route) > 0:
+            if len(self._route_wps) < 1:
+                next_route_loc = self._ego_route.pop(0)
+                self._route_wps.extend(
+                    route_planner(self.map, self.current_w.transform.location, 
+                                  next_route_loc))
+            next_w = self._route_wps.pop(0)
+
+        else:
+            if self.args.exit_after_route:
+                self.exit = True
+            next_w = random.choice(self.current_w.next(self.args.ego.speed))
+            
         self.ego.set_transform(self.current_w.transform)
-        self.current_w = self.next_w
+        self.current_w = next_w
 
 # ----------------------------------------------------------------------
     def spawn_traffic(self):
+        # Change traffic light config
+        traffic.change_traffic_light_timings(self.world)
 
         # Spawn vehicles
-        vehicles_list = spawn_vehicles(self.args.traffic, self.client,
+        vehicles_list = traffic.spawn_vehicles(self.args.traffic, self.client,
                                         self.bp_library, self.spawn_points)
         
         self.vehicles.extend(self.world.get_actors(vehicles_list))
-        print('Spawned %d vehicles.' % (len(self.vehicles) - 1))
+        print('Spawned %d vehicles.' % (len(self.vehicles)))
 
         # Spawn Walkers
         (self.walkers,
          walkers_speed,
-         self.controllers) = spawn_walkers(self.args.traffic, self.client, 
+         self.controllers) = traffic.spawn_walkers(self.args.traffic, self.client, 
                                                self.world, self.bp_library)
         
         # Initialize walkers controllers and set target to walk 
@@ -162,7 +192,7 @@ class CarlaClient(object):
         # Stop controllers 
         for walker_controller in self.controllers:
             walker_controller.stop()
-
+    
     def destroy_actors(self):
         """
         Destroy all spawned actors during the simulation.
