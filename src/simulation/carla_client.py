@@ -4,11 +4,11 @@ import numpy as np
 import carla
 from carla import Transform, Location, Rotation
 
-from simulation.sensors.camera import Camera
-from simulation.sensors.lidar import Lidar
+from src.sensors.camera import Camera
+from src.sensors.lidar import Lidar
 
-import simulation.traffic as traffic
-from simulation.route_planner import route_planner
+import src.simulation.traffic as traffic
+from src.simulation.route_planner import route_planner
 
 class CarlaClient(object):
     def __init__(self):
@@ -69,9 +69,9 @@ class CarlaClient(object):
     def sensor_setup(self, sensor_args):
         bp = self.bp_library.find(sensor_args.bp)
 
-        for key, val in vars(sensor_args.params).items():
-            bp.set_attribute(key, val)
-            
+        for key, val in sensor_args.params.items():
+            bp.set_attribute(key, str(val))
+        
         transform = Transform(Location(*sensor_args.location),
                                Rotation(*sensor_args.rotation))
         
@@ -81,9 +81,7 @@ class CarlaClient(object):
         if 'lidar' in sensor_args.bp:
             sensor = Lidar(actor, sensor_args)
 
-        sensor.save_path = os.path.join(self.args.output_path,
-                                        self.args.map,
-                                        self.args.test_id,
+        sensor.save_path = os.path.join(self.args.logdir,
                                         sensor_args.id)
         
         if sensor_args.id == 'bev':
@@ -113,7 +111,8 @@ class CarlaClient(object):
         self.ego = self.world.spawn_actor(ego_bp, start_pose)
 
         # Spawn ego sensors
-        for sensor_args in self.args.ego.sensors:
+        for sensor in self.args.ego.sensors:
+            sensor_args = getattr(self.args, sensor)
             self.sensor_setup(sensor_args)
 
         # Set carla autopilot
@@ -128,7 +127,8 @@ class CarlaClient(object):
         print('\nSpawned 1 ego vehicle and %d sensors.' % len(self.sensors))
 
     def ego_route_setup(self):
-        route = np.load(self.args.ego.route)
+        route_path = os.path.join('src/routes/', f'{self.args.ego.route}.npy')
+        route = np.load(route_path)
         
         for i, p in enumerate(route):
             self._ego_route.append(carla.Location(p[0], p[1], p[2]))

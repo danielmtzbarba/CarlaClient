@@ -3,7 +3,7 @@
 import carla
 import queue
 
-from simulation.carla_client import CarlaClient
+from src.simulation.carla_client import CarlaClient
 
 class CarlaSyncMode(CarlaClient):
     """

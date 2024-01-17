@@ -1,0 +1,63 @@
+import os, ast
+import pandas as pd
+from yacs.config import CfgNode
+from argparse import ArgumentParser
+
+def load_config(config_path):
+    with open(config_path) as f:
+        return CfgNode.load_cfg(f)
+
+def get_default_configuration():
+    root = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
+    defaults_path = os.path.join(root, 'configs/config.yml')
+    return load_config(defaults_path)
+
+def get_console_args():
+    parser = ArgumentParser()
+    parser.add_argument('--dataset', choices=['front2bev', 'nuscenes'],
+                        default='front2bev', help='dataset to train on')
+    parser.add_argument('--experiment', default='test', 
+                        help='name of experiment config to load')
+    parser.add_argument('--pc', default='home', 
+                        help='machine config')
+    parser.add_argument('--options', nargs='*', default=[],
+                        help='list of addition config options as key-val pairs')
+    return parser.parse_args()
+
+def get_configuration():
+
+    args = get_console_args()
+
+    # Load config defaults
+    config = get_default_configuration()
+
+    # Load experiment options
+    config.merge_from_file(f'configs/experiments/{args.experiment}.yml')
+
+    # Override with command line options
+    #config.merge_from_list(args.options)
+
+    if config.save:
+        config.logdir = create_experiment(config)
+
+    # Finalise config
+    config.freeze()
+
+    return config
+
+def create_experiment(config):
+    logdir = os.path.join(os.path.expandvars(config.logdir),
+                          config.map, f'seq{config.seq}' ,config.map_config)
+    print("\n==> Creating new experiment in directory:\n" + logdir)
+    try:
+        os.makedirs(logdir)
+    except:
+        # Directory exists
+        pass
+         # Save the current config
+        with open(os.path.join(logdir, 'config.yml'), 'w') as f:
+             f.write(config.dump())
+
+    print(config.name, config.map_config)
+    
+    return logdir

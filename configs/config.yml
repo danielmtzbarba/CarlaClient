@@ -1,0 +1,59 @@
+name: debug
+seed: 35
+save: True
+
+map: Town01
+map_config: layers_all
+seq: 1
+reload_map: False 
+
+logdir: /media/aisyslab/dan/datasets/Dan-2024-Front2BEV/
+
+exit_after_route: True
+frames: 100 
+
+display: False
+grid_size: [1,1]
+window_size: (1024, 1024)
+
+ego: 
+  bp: charger_2020
+  sensors: ['rgb', 'top']
+  autopilot: False
+  route: front2bev_town01
+  speed: 2.0
+
+rgb:
+  id: rgb
+  bp: sensor.camera.rgb
+  location: [0.0, 0.0, 2.0]
+  rotation: [0.0, 0.0, 0.0]
+  params: 
+    image_size_x: 1024
+    image_size_y: 1024
+    fov: 90.0
+  save: True,
+
+top:
+  id: bev
+  bp: sensor.camera.semantic_segmentation
+  location: [0.0, 0.0, 32.0]
+  rotation: [-90.0, 0.0, 0.0]
+  params: 
+    image_size_x: 1024
+    image_size_y: 1024
+  save: True,
+
+traffic: 
+    spawn_traffic: False
+    tm_port: 8000
+    tm_hybrid: False
+    n_vehicles: 50
+    filterv: vehicle.*
+    vehicle_speed: -20.0
+
+    n_walkers: 100
+    filterw: walker.pedestrian.*
+    percent_running: 0.1
+    percent_crossing: 0.1
+

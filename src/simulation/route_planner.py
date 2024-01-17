@@ -1,4 +1,4 @@
-from agents.navigation.global_route_planner import GlobalRoutePlanner
+from src.agents.navigation.global_route_planner import GlobalRoutePlanner
 
 def route_planner(map, a, b):
     sampling_resolution = 2

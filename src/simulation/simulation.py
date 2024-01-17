@@ -10,8 +10,8 @@ except IndexError:
 
 import pygame
 
-from simulation.sync_mode import CarlaSyncMode
-from simulation.display import Display
+from src.simulation.sync_mode import CarlaSyncMode
+from src.simulation.display import Display
 
 class Simulation(object):
     def __init__(self, sim_args):

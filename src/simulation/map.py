@@ -1,5 +1,5 @@
 import carla
-from simulation.utils import map_layers
+from src.simulation.utils import map_layers
 
 maps = ['Town01','Town02', 'Town03', 'Town04', 'Town05', 'Town06','Town07','Town10HD']
 
