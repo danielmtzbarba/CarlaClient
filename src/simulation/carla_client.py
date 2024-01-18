@@ -97,19 +97,19 @@ class CarlaClient(object):
         """
         self._ego_route, self._route_wps = [], []
 
-        if self.args.ego.route:
-            start_pose = self.ego_route_setup()
-        else:
-            start_pose = random.choice(self.spawn_points)
-    
-        self.current_w = self.map.get_waypoint(start_pose.location)
-
-        # Spawn ego vehicle
         ego_bp = self.bp_library.filter(self.args.ego.bp)[0]
         ego_bp.set_attribute('role_name', 'hero')
 
-        self.ego = self.world.spawn_actor(ego_bp, start_pose)
+        if self.args.ego.route:
 
+            start_pose = self.ego_route_setup()
+            self.ego = self.world.spawn_actor(ego_bp, start_pose)
+
+        else:
+            start_pose = random.choice(self.spawn_points)
+            self.ego = self.world.spawn_actor(ego_bp, start_pose)
+            self.current_w = self.map.get_waypoint(start_pose.location)
+        
         # Spawn ego sensors
         for sensor in self.args.ego.sensors:
             sensor_args = getattr(self.args, sensor)
@@ -127,15 +127,22 @@ class CarlaClient(object):
         print('\nSpawned 1 ego vehicle and %d sensors.' % len(self.sensors))
 
     def ego_route_setup(self):
-        route_path = os.path.join('src/routes/', f'{self.args.ego.route}.npy')
+        route_name = f'{self.args.ego.route}_{self.args.map}_seq_{self.args.seq}'
+        route_path = os.path.join('src/routes/', f'{route_name}.npy')
         route = np.load(route_path)
         
         for i, p in enumerate(route):
             self._ego_route.append(carla.Location(p[0], p[1], p[2]))
         
         start_pose = carla.Transform(self._ego_route[0], carla.Rotation(0, 180, 0))
+        self.current_w = self.map.get_waypoint(start_pose.location)
+
         return start_pose
-        
+    
+    def ego_move(self, next_w):
+        self.ego.set_transform(self.current_w.transform)
+        self.current_w = next_w
+
     def ego_next_waypoint(self):
         """
         Ego vehicle follows predefined routes.
@@ -153,9 +160,7 @@ class CarlaClient(object):
             if self.args.exit_after_route:
                 self.exit = True
             next_w = random.choice(self.current_w.next(self.args.ego.speed))
-            
-        self.ego.set_transform(self.current_w.transform)
-        self.current_w = next_w
+        return next_w 
 
 # ----------------------------------------------------------------------
     def spawn_traffic(self):

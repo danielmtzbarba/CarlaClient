@@ -3,14 +3,14 @@ seed: 35
 save: True
 
 map: Town01
-map_config: layers_all
-seq: 1
+map_config: layers_none
+seq: 11
 reload_map: False 
 
 logdir: /media/aisyslab/dan/datasets/Dan-2024-Front2BEV/
 
 exit_after_route: True
-frames: 100 
+frames: 200 
 
 display: False
 grid_size: [1,1]
@@ -20,7 +20,7 @@ ego:
   bp: charger_2020
   sensors: ['rgb', 'top']
   autopilot: False
-  route: front2bev_town01
+  route: front2bev
   speed: 2.0
 
 rgb:

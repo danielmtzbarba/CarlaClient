@@ -41,7 +41,8 @@ class Simulation(object):
                         return
 
                     if not self.args.ego.autopilot:
-                        sync_mode.ego_next_waypoint()
+                        next_wp = sync_mode.ego_next_waypoint()
+                        sync_mode.ego_move(next_wp)
 
                     # Advance the simulation and wait for the data.
                     data = sync_mode.tick(timeout=10.0)

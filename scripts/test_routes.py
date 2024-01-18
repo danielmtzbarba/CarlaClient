@@ -1,9 +1,8 @@
 import carla
-import random
 import time
 import numpy as np
 
-from agents.navigation.global_route_planner import GlobalRoutePlanner
+from src.agents.navigation.global_route_planner import GlobalRoutePlanner
 
 waypoints = []
 
@@ -14,9 +13,9 @@ def lane_waypoints(current_waypoint, dist):
     next_waypoint = current_waypoint.next_until_lane_end(dist)
     return next_waypoint
 
-def route_planner(map, a, b):
+def route_planner(world, citymap, a, b):
     sampling_resolution = 5
-    grp = GlobalRoutePlanner(map, sampling_resolution)
+    grp = GlobalRoutePlanner(citymap, sampling_resolution)
     w1 = grp.trace_route(a, b)
     i = 0
 
@@ -34,7 +33,7 @@ def route_planner(map, a, b):
     return w[0].transform.location
 
 # -------------------------------------------
-def plot_points(point, id ,color=carla.Color(r=255, g=255, b=0)):
+def plot_points(world, point, id ,color=carla.Color(r=255, g=255, b=0)):
         world.debug.draw_string(point, str(id), draw_shadow=False,
                 color=color, life_time=10.0,
                 persistent_lines=False)
@@ -65,65 +64,72 @@ def load_map(reload_map: bool, map_name: str):
                     persistent_lines=False)
     return world
 # -------------------------------------------
+
+def create_waypoint_list(world, road_wps):
+
+    i = 0
+    ids, waypoints = [], []
+
+
+    for road in road_wps:
+
+        point = road[0]
+        id = point.id
+        point = point.transform.location
+
+        if not are_same_point(point, waypoints, 2):
+            plot_points(world, point, i)
+            waypoints.append(point)
+            ids.append(id)
+            i += 1
+    return ids, waypoints
+
+def save_route(route, route_name):
+    route = np.array(route)
+    save_path = f'src/routes/{route_name}.npy'
+    with open(save_path, 'wb') as f:
+        np.save(f, route)
+
+def new_route(world, citymap, waypoints, seq):
+    wp_start = seq[0]
+    a = waypoints[wp_start]
+
+    route = []
+    for i, wp_idx in enumerate(seq):
+        aux = waypoints[wp_idx]
+        if i == 0:
+            z = 0.3
+        else:
+            z = 0.0
+        route.append([aux.x, aux.y, z])
+        route_planner(world, citymap, a, aux)
+        a = aux
+    return route
+
 client = carla.Client("localhost", 2000)
 client.set_timeout(10)
 
-reload_map, map_name = False, 'Town03_Opt'
-
-world = load_map(reload_map, map_name)
-map = world.get_map()
-spawn_points = map.get_spawn_points()
-
-ids = []
-waypoints = []
-road_wps = map.get_topology()
-i = 0
-for road in road_wps:
-    point = road[0]
-    id = point.id
-    point = point.transform.location
-
-    if not are_same_point(point, waypoints, 2):
-        plot_points(point, i)
-        waypoints.append(point)
-        ids.append(id)
-        i += 1
-        
-town_03_route_idx = [159, 169, 12, 281, 109, 257, 75, 33, 80, 0, 195, 153, 261, 135, 98, 156, 159, 169]
-
-a = waypoints[159]
-
-route = []
-for i, wp_idx in enumerate(town_03_route_idx):
-    aux = waypoints[wp_idx]
-    if i == 0:
-        z = 0.3
-    else:
-        z = 0.0
-    route.append([aux.x, aux.y, z])
-    route_planner(map, a, aux)
-    a = aux
-
-route = np.array(route)
-
-with open(f'sim_params/routes/front2bev_town03.npy', 'wb') as f:
-    np.save(f, route)
-
-
-'''
-
-'''
-
 town_01_route_idx = [45, 63, 69, 78, 17, 39, 20, 36, 71, 75, 2, 33, 45, 63]
 town_02_route_idx = [56, 32, 34, 26, 4, 51, 4, 21, 31, 42, 56, 16]
+town_03_route_idx = [159, 169, 12, 281, 109, 257, 75, 33, 80, 0, 195, 153, 261, 135, 98, 156, 159, 169]
+
+seq, n_seq = [71, 75, 2], 9
 
 
+def main(map_name, reload, save):
 
+    world = load_map(reload, f'{map_name}_Opt')
+    citymap = world.get_map()
+    road_wps = citymap.get_topology()
+    spawn_points = citymap.get_spawn_points()
 
+    ids, waypoints = create_waypoint_list(world, road_wps)
+    route = new_route(world, citymap, waypoints, seq)
 
+    if save:
+        route_name =f'front2bev_{map_name}_seq_{n_seq}'
+        save_route(route, route_name)
 
-    
-        
-
-
-
+if __name__ == '__main__':
+    main(map_name='Town01', reload=False, save=True)
+     
