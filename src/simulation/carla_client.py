@@ -216,3 +216,5 @@ class CarlaClient(object):
         self.client.apply_batch([carla.command.DestroyActor(x.id) for x in self.vehicles])
 
         print('\nDone.')
+
+    # ----------------------------------------------------------------------

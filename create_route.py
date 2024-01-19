@@ -6,13 +6,6 @@ from src.agents.navigation.global_route_planner import GlobalRoutePlanner
 
 waypoints = []
 
-def lane_waypoints(current_waypoint, dist):
-    """
-    Creates a new waypoint.
-    """
-    next_waypoint = current_waypoint.next_until_lane_end(dist)
-    return next_waypoint
-
 def route_planner(world, citymap, a, b):
     sampling_resolution = 5
     grp = GlobalRoutePlanner(citymap, sampling_resolution)
