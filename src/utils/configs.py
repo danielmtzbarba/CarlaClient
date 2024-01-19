@@ -14,8 +14,8 @@ def get_default_configuration():
 
 def get_console_args():
     parser = ArgumentParser()
-    parser.add_argument('--dataset', choices=['front2bev', 'nuscenes'],
-                        default='front2bev', help='dataset to train on')
+    parser.add_argument('--sensors', choices=['front2bev', 'all'],
+                        default='front2bev', help='sensor suite setup')
     parser.add_argument('--experiment', default='test', 
                         help='name of experiment config to load')
     parser.add_argument('--pc', default='home', 
@@ -30,7 +30,11 @@ def get_configuration():
 
     # Load config defaults
     config = get_default_configuration()
-
+    
+    # PC
+    config.merge_from_file(f'configs/pc/{args.pc}.yml')
+    #
+    config.merge_from_file(f'configs/sensors/{args.sensors}.yml')
     # Load experiment options
     config.merge_from_file(f'configs/experiments/{args.experiment}.yml')
 

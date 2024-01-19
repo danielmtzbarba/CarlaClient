@@ -1,0 +1,33 @@
+name: test 
+seed: 1596
+save: False 
+
+map: Town01
+map_config: layers_all 
+seq: 1
+
+reload_map: False 
+exit_after_route: True
+
+frames: 200 
+
+ego: 
+  bp: charger_2020
+  sensors: ['rgb', 'top']
+  autopilot: False
+  route: front2bev
+  speed: 2.0
+
+traffic: 
+    spawn_traffic: False
+    tm_port: 8000
+    tm_hybrid: False
+    n_vehicles: 50
+    filterv: vehicle.*
+    vehicle_speed: -20.0
+
+    n_walkers: 100
+    filterw: walker.pedestrian.*
+    percent_running: 0.1
+    percent_crossing: 0.1
+

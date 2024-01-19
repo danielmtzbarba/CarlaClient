@@ -1,20 +1,20 @@
-name: debug
-seed: 35
-save: True
+name: test 
+seed: 1596
+save: False 
 
 map: Town01
 map_config: layers_none
 seq: 11
 reload_map: False 
 
-logdir: /media/aisyslab/dan/datasets/Dan-2024-Front2BEV/
+logdir: None
 
 exit_after_route: True
 frames: 200 
 
 display: False
 grid_size: [1,1]
-window_size: (1024, 1024)
+window_size: [0, 0]
 
 ego: 
   bp: charger_2020
@@ -32,8 +32,8 @@ rgb:
     image_size_x: 1024
     image_size_y: 1024
     fov: 90.0
-  save: True,
-
+  save: True
+ 
 top:
   id: bev
   bp: sensor.camera.semantic_segmentation
@@ -42,7 +42,7 @@ top:
   params: 
     image_size_x: 1024
     image_size_y: 1024
-  save: True,
+  save: True
 
 traffic: 
     spawn_traffic: False
