@@ -10,8 +10,14 @@ from src.sensors.lidar import Lidar
 import src.simulation.traffic as traffic
 from src.simulation.route_planner import route_planner
 
+from src.simulation.ego import Ego
+from src.simulation.traffic_manager import TrafficManager
+
 class CarlaClient(object):
     def __init__(self):
+        self.client = carla.Client('localhost', 2000)
+        self.client.set_timeout(10.0)
+
         self.exit = False
         self.n_frame = 0
         self.vehicles = []
@@ -20,17 +26,17 @@ class CarlaClient(object):
         self.sensors = []
 
         self.sensors_obj = []
-
-        if self.args.seed is None:
-            self.args.seed = 42
-
-        random.seed(self.args.seed)
-
-        self.client = carla.Client('localhost', 2000)
-        self.client.set_timeout(10.0)
-
         self.world_setup()
-        self.traffic_setup()
+
+        self.traffic = TrafficManager(self.client,
+                                        self.args.traffic.tm_port)
+
+        ego_bp = self.bp_library.filter(self.args.ego.bp)[0]
+        self.ego = Ego(ego_bp)
+
+        self.traffic.setup(self.args.traffic)
+        #self.ego.setup(self.args.ego)
+
         self.ego_setup()
 
         if self.args.traffic.spawn_traffic:
@@ -51,20 +57,8 @@ class CarlaClient(object):
         self.spawn_points = self.map.get_spawn_points()
 
         self.world.set_pedestrians_seed(self.args.seed)
-
-    def traffic_setup(self):
-        self.traffic_manager = self.client.get_trafficmanager(self.args.traffic.tm_port)
-        self.traffic_manager.set_global_distance_to_leading_vehicle(2.5)
-
-        if self.args.traffic.tm_hybrid:
-            self.traffic_manager.set_hybrid_physics_mode(True)
-            self.traffic_manager.set_hybrid_physics_radius(70.0)
-        
-        self.traffic_manager.set_random_device_seed(self.args.seed)
-        self.traffic_manager.set_synchronous_mode(True)
-
         self.world.set_pedestrians_cross_factor(self.args.traffic.percent_crossing)
-    
+
     # ---------------------------------------------------------------------- 
     def sensor_setup(self, sensor_args):
         bp = self.bp_library.find(sensor_args.bp)
@@ -119,10 +113,10 @@ class CarlaClient(object):
         if self.args.ego.autopilot:
             self.ego.set_autopilot(True, self.args.traffic.tm_port)
         
-        self.traffic_manager.vehicle_percentage_speed_difference(self.ego,
-                                                        self.args.ego.speed)
+#        self.traffic_manager.vehicle_percentage_speed_difference(self.ego,
+ #                                                       self.args.ego.speed)
         
-        self.traffic_manager.ignore_lights_percentage(self.ego, 100.0)
+  #      self.traffic_manager.ignore_lights_percentage(self.ego, 100.0)
         
         print('\nSpawned 1 ego vehicle and %d sensors.' % len(self.sensors))
 

@@ -6,7 +6,7 @@ map: Town01
 map_config: layers_all 
 seq: 1
 
-reload_map: False 
+reload_map: True 
 exit_after_route: True
 
 frames: 200 
@@ -30,4 +30,3 @@ traffic:
     filterw: walker.pedestrian.*
     percent_running: 0.1
     percent_crossing: 0.1
-

@@ -1,10 +1,13 @@
 import carla
 
 class Ego(object):
-    def __init__(self, blueprint, config):
+    def __init__(self, blueprint):
         self._ego_route, self._route_wps = [], []
-        blueprint.set_attribute('role_name', 'hero')
-    
+        self._bp = blueprint.set_attribute('role_name', 'hero')
+   
+    def spawn(self, world, start_pose):
+        self.ego = world.spawn_actor(self._bp, start_pose)
+
     def setup(self, config):
         """
         Sets a random start pose and spawns the ego.
@@ -13,7 +16,6 @@ class Ego(object):
         if config.route:
 
             start_pose = self.ego_route_setup()
-            self.ego = self.world.spawn_actor(ego_bp, start_pose)
 
         else:
             start_pose = random.choice(self.spawn_points)
@@ -29,10 +31,10 @@ class Ego(object):
         if self.args.ego.autopilot:
             self.ego.set_autopilot(True, self.args.traffic.tm_port)
         
-        self.traffic_manager.vehicle_percentage_speed_difference(self.ego,
-                                                        self.args.ego.speed)
+        #self.traffic_manager.vehicle_percentage_speed_difference(self.ego,
+        #                                                self.args.ego.speed)
         
-        self.traffic_manager.ignore_lights_percentage(self.ego, 100.0)
+        #self.traffic_manager.ignore_lights_percentage(self.ego, 100.0)
         
         print('\nSpawned 1 ego vehicle and %d sensors.' % len(self.sensors))
 

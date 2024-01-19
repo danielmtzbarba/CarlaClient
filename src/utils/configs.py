@@ -18,7 +18,7 @@ def get_console_args():
                         default='front2bev', help='sensor suite setup')
     parser.add_argument('--experiment', default='test', 
                         help='name of experiment config to load')
-    parser.add_argument('--pc', default='home', 
+    parser.add_argument('--pc', default='aisyslab', 
                         help='machine config')
     parser.add_argument('--options', nargs='*', default=[],
                         help='list of addition config options as key-val pairs')

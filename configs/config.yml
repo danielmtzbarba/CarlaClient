@@ -45,9 +45,11 @@ top:
   save: True
 
 traffic: 
-    spawn_traffic: False
     tm_port: 8000
     tm_hybrid: False
+    seed: 1596
+
+    spawn_traffic: False
     n_vehicles: 50
     filterv: vehicle.*
     vehicle_speed: -20.0

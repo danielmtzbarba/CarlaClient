@@ -31,7 +31,7 @@ def load_map(args):
         client.set_timeout(5.0)
 
         world = client.load_world(f"{args.map}_Opt",
-                                   map_layers=carla.MapLayer.NONE)
+                                  map_layers=carla.MapLayer.NONE)
         map = world.get_map()
         print("Loaded map: ", str(map))
         load_map_layers(world, args.map_config)
