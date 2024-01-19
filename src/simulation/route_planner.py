@@ -1,7 +1,11 @@
 from src.agents.navigation.global_route_planner import GlobalRoutePlanner
 
-def route_planner(map, a, b):
-    sampling_resolution = 2
-    grp = GlobalRoutePlanner(map, sampling_resolution)
-    waypoints = grp.trace_route(a, b)
-    return [w[0] for w in waypoints]
+class RoutePlanner(object):
+    def __init__(self, map, resolution):
+        self._map = map
+        self._resolution = resolution
+
+    def get_waypoints(self, a, b):
+        grp = GlobalRoutePlanner(self._map, self._resolution)
+        waypoints = grp.trace_route(a, b)
+        return [w[0] for w in waypoints]

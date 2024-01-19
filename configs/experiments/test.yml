@@ -6,13 +6,13 @@ map: Town01
 map_config: layers_all 
 seq: 1
 
-reload_map: True 
+reload_map: True
 exit_after_route: True
 
-frames: 200 
+frames: 10 
 
 ego: 
-  bp: charger_2020
+  bp: vehicle.dodge.charger_2020
   sensors: ['rgb', 'top']
   autopilot: False
   route: front2bev

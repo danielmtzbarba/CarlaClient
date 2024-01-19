@@ -34,16 +34,13 @@ class Simulation(object):
 
             # Create a synchronous mode context.
             with CarlaSyncMode(self.args, fps=30) as sync_mode:
+
                 # Simulation loop
                 while True:
 
                     if self.exit_sim() or sync_mode.exit:
                         return
-
-                    if not self.args.ego.autopilot:
-                        next_wp = sync_mode.ego_next_waypoint()
-                        sync_mode.ego_move(next_wp)
-
+                    
                     # Advance the simulation and wait for the data.
                     data = sync_mode.tick(timeout=10.0)
 

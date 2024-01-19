@@ -20,22 +20,17 @@ class CarlaSyncMode(CarlaClient):
         self.args = args
         super().__init__()
         self.frame = None
-        self.delta_seconds = 1.0 / kwargs.get('fps', 20)
+        self.delta = 1.0 / kwargs.get('fps', 20)
         self._queues = []
 
     def __enter__(self):
-        self.world.apply_settings(
-            carla.WorldSettings(
-            no_rendering_mode=False,
-            synchronous_mode=True,
-            fixed_delta_seconds=self.delta_seconds))
-
+        self.world.sync_mode(self.delta)
         def make_queue(register_event):
             q = queue.Queue()
             register_event(q.put)
             self._queues.append(q)
 
-        make_queue(self.world.on_tick)
+        make_queue(self.world.get_world().on_tick)
 
         # Sensor queues to retreieve data
         for actor in self.sensors:
@@ -43,8 +38,11 @@ class CarlaSyncMode(CarlaClient):
         return self
 
     def tick(self, timeout):
-        self.frame = self.world.tick()
+        self.sim_step()
+
+        self.frame = self.world.get_world().tick()
         self.n_frame += 1
+
         data = [self._retrieve_data(q, timeout) for q in self._queues]
 
         for sensor, frame in zip(self.sensors_obj, data[1:]):
@@ -72,4 +70,4 @@ class CarlaSyncMode(CarlaClient):
         self.stop_sensors()
         self.stop_controllers()
         self.destroy_actors()
-        self.world.apply_settings(self.og_settings)
+        self.world.reset_settings()

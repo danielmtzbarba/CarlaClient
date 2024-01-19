@@ -125,12 +125,3 @@ def spawn_walkers(args, client, world, bp_library):
     controllers_list = world.get_actors(controller_ids)
 
     return walkers_list, walkers_speed, controllers_list
-
-def change_traffic_light_timings(world):
-    list_actor = world.get_actors()
-    for actor_ in list_actor:
-        if isinstance(actor_, carla.TrafficLight):
-             # for any light, first set the light state, then set time. for yellow it is 
-             # carla.TrafficLightState.Yellow and Red it is carla.TrafficLightState.Red
-            actor_.set_state(carla.TrafficLightState.Green) 
-            actor_.set_green_time(10000.0)
