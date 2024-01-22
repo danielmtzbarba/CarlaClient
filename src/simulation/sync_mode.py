@@ -24,6 +24,7 @@ class CarlaSyncMode(CarlaClient):
         self._queues = []
 
     def __enter__(self):
+
         self.world.sync_mode(self.delta)
         def make_queue(register_event):
             q = queue.Queue()
@@ -36,35 +37,6 @@ class CarlaSyncMode(CarlaClient):
         for actor in self.sensors:
             make_queue(actor.listen)
         return self
-
-    def tick(self, timeout):
-        self.sim_step()
-
-        self.frame = self.world.get_world().tick()
-        self.n_frame += 1
-
-        data = [self._retrieve_data(q, timeout) for q in self._queues]
-
-        for sensor, frame in zip(self.sensors_obj, data[1:]):
-            sensor.set_frame(frame)
-
-        assert all(x.frame == self.frame for x in data)
-        return data
-    
-    def _retrieve_data(self, sensor_queue, timeout):
-        while True:
-            data = sensor_queue.get(timeout=timeout)
-            if data.frame == self.frame:
-                return data
-    
-    def stop_sensors(self):
-        for actor in self.sensors:
-            if actor.is_listening():
-                actor.stop()
-
-        for q in self._queues:
-            with q.mutex:
-                q.queue.clear()
 
     def __exit__(self, *args, **kwargs):
         self.stop_sensors()
