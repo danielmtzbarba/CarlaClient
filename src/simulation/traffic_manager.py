@@ -51,5 +51,12 @@ class TrafficManager(object):
                 actor_.set_state(carla.TrafficLightState.Green) 
                 actor_.set_green_time(10000.0)
 
+    def percentage_speed_diff(self, vehicle , speed): 
+        self.manager.vehicle_percentage_speed_difference(vehicle,
+                                                        speed)
+
+    def ignore_traffic_lights(self, vehicle, percentage):
+        self.manager.ignore_lights_percentage(vehicle, percentage)
+
     def get_manager(self):
         return self.manager

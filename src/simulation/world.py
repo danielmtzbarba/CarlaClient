@@ -1,4 +1,5 @@
 import carla
+import random
 
 class World(object):
     def __init__(self, client):
@@ -14,6 +15,7 @@ class World(object):
         self._og_settings = self._world.get_settings()
 
         self._bp_library = self._world.get_blueprint_library()
+        self._vehicle_bps = self._bp_library.filter("vehicle.*")
         self._spawn_points = self._map.get_spawn_points()
 
         self._world.set_pedestrians_seed(config.seed)
@@ -29,6 +31,9 @@ class World(object):
     
     def reset_settings(self):
         self._world.apply_settings(self._og_settings)
+
+    def get_random_vehicle_bp(self):
+        return random.choice(self._vehicle_bps)
 
     def get_bp(self, id):
         return self._bp_library.find(id)

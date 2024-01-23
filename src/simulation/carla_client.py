@@ -1,34 +1,48 @@
 import carla
 
 from src.simulation.traffic_manager import TrafficManager
-from src.simulation.ego import Ego
+from src.simulation.hero import Hero 
 from src.simulation.world import World
+from src.simulation.scene import Scene
 
-class CarlaClient(object):
+class CarlaClient(carla.Client):
     def __init__(self):
-        self.client = carla.Client('localhost', 2000)
-        self.client.set_timeout(10.0)
+        super(CarlaClient, self).__init__('localhost', 2000)
+
+        self.set_timeout(10.0)
 
         self.exit = False
         self.n_frame = 0
         self.vehicles = []
+        self.vehicles_obj = []
+
         self.walkers = []
         self.controllers = []
-        self.sensors = []
 
+        self.sensors = []
         self.sensors_obj = []
 
-        self.world = World(self.client)
+        self.world = World(self)
         self.world.setup(self.args)
 
-        self.traffic = TrafficManager(self.client, self.args.traffic.tm_port)
+        self.traffic = TrafficManager(self, self.args.traffic.tm_port)
         self.traffic.setup(self.args.traffic)
-
-        self.ego = Ego(self.world.get_bp(self.args.ego.bp))
-        self.ego.setup(self.world, self.args)
-        actors, sensors = self.ego.spawn_sensors(self.world, self.args)
+        self.scene = Scene(self.args)
+        self.hero = Hero(self.args)
+        self.hero.setup(self.world)
+        actors, sensors = self.hero.spawn_sensors(self.world)
         self.sensors.extend(actors)
         self.sensors_obj.extend(sensors)
+                
+        for i in range(2):
+            actor, vehicle = self.scene.spawn_vehicle(self.world, self.hero)
+            self.vehicles.append(actor)
+            self.vehicles_obj.append(vehicle)
+
+        for i in range(2):
+            actor, vehicle = self.scene.spawn_vehicle(self.world, self.hero)
+            self.vehicles.append(actor)
+            self.vehicles_obj.append(vehicle)
 
         if self.args.traffic.spawn_traffic:
             self.traffic.spawn_traffic()
@@ -36,8 +50,10 @@ class CarlaClient(object):
 # ----------------------------------------------------------------------
     def tick(self, timeout):
 
-        if not self.args.ego.autopilot:
-            self.ego.move()
+        if not self.args.hero.autopilot:
+            self.hero.move()
+            for car in self.vehicles_obj:
+                car.move()
 
         self.frame = self.world.get_world().tick()
         self.n_frame += 1
@@ -57,6 +73,17 @@ class CarlaClient(object):
                 return data
 
 # ----------------------------------------------------------------------
+    def spawn_sync(self, batch):
+        actor_id, success = None, False
+        for response in self.apply_batch_sync(batch, True):
+            if response.error:
+                # Spawn failed on this location.
+                pass
+            else:
+                actor_id = response.actor_id
+                success = True
+        return success, actor_id
+# ----------------------------------------------------------------------
 
     def stop_sensors(self):
         for actor in self.sensors:
@@ -75,14 +102,14 @@ class CarlaClient(object):
 # ----------------------------------------------------------------------
 
     def destroy_batch(self, actor_list): 
-        self.client.apply_batch([carla.command.DestroyActor(x.id) for x in actor_list])
+        self.apply_batch([carla.command.DestroyActor(x.id) for x in actor_list])
 
     def destroy_actors(self):
         """
         Destroy all spawned actors during the simulation.
         """
         print('\nDestroying ego and %d sensors...' % len(self.sensors))
-        self.destroy_batch([self.ego.actor])
+        self.destroy_batch([self.hero.actor])
         self.destroy_batch(self.sensors)
 
         print('Destroying %d walkers...' % len(self.walkers))

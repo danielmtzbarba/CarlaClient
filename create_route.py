@@ -1,31 +1,9 @@
-import carla
-import time
-import numpy as np
-
-from src.agents.navigation.global_route_planner import GlobalRoutePlanner
-
-waypoints = []
-
-def route_planner(world, citymap, a, b):
-    sampling_resolution = 5
-    grp = GlobalRoutePlanner(citymap, sampling_resolution)
-    w1 = grp.trace_route(a, b)
-    i = 0
-
-    for w in w1:
-        if i % 10 == 0:
-            world.debug.draw_string(w[0].transform.location, 'o', draw_shadow=False,
-            color=carla.Color(r=255, g=0, b=0), life_time=5.0,
-            persistent_lines=False)
-        else:
-            world.debug.draw_string(w[0].transform.location, 'o', draw_shadow=False,
-            color = carla.Color(r=0, g=0, b=255), life_time=5.0,
-            persistent_lines=False)
-        i += 1
-        time.sleep(0.01)
-    return w[0].transform.location
-
 # -------------------------------------------
+import carla
+import numpy as np
+from src.simulation.route_planner import RoutePlanner
+# -------------------------------------------
+
 def plot_points(world, point, id ,color=carla.Color(r=255, g=255, b=0)):
         world.debug.draw_string(point, str(id), draw_shadow=False,
                 color=color, life_time=10.0,
@@ -83,7 +61,7 @@ def save_route(route, route_name):
     with open(save_path, 'wb') as f:
         np.save(f, route)
 
-def new_route(world, citymap, waypoints, seq):
+def new_route(world, planner,  waypoints, seq):
     wp_start = seq[0]
     a = waypoints[wp_start]
 
@@ -95,7 +73,10 @@ def new_route(world, citymap, waypoints, seq):
         else:
             z = 0.0
         route.append([aux.x, aux.y, z])
-        route_planner(world, citymap, a, aux)
+
+        wps = planner.get_waypoints(a, aux)
+        planner.draw_route(world, wps)
+
         a = aux
     return route
 
@@ -108,16 +89,15 @@ town_03_route_idx = [159, 169, 12, 281, 109, 257, 75, 33, 80, 0, 195, 153, 261, 
 
 seq, n_seq = [45, 63, 69], 1
 
-
 def main(map_name, reload, save):
 
     world = load_map(reload, f'{map_name}_Opt')
     citymap = world.get_map()
+    planner = RoutePlanner(citymap, 2)
     road_wps = citymap.get_topology()
-    spawn_points = citymap.get_spawn_points()
 
     ids, waypoints = create_waypoint_list(world, road_wps)
-    route = new_route(world, citymap, waypoints, seq)
+    route = new_route(world,planner, waypoints, seq)
 
     if save:
         route_name =f'front2bev_{map_name}_seq_{n_seq}'

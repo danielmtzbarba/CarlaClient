@@ -24,6 +24,7 @@ def spawn_vehicles(args, client, bp_library, spawn_points):
 
     vehicle_bps = bp_library.filter(args.filterv)
 
+    vehicle_bp = random.choice(vehicle_bps)
     # Safe spawn
     vehicle_bps = [x for x in vehicle_bps if x.get_attribute('base_type') == 'car']
 

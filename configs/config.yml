@@ -16,12 +16,18 @@ display: False
 grid_size: [1,1]
 window_size: [0, 0]
 
-ego: 
+hero: 
+  spawn_angle: 0
   bp: charger_2020
   sensors: ['rgb', 'top']
   autopilot: False
   route: front2bev
   speed: 2.0
+
+vehicle:
+  route: False
+  speed: 1.55555 
+  autopilot: False 
 
 rgb:
   id: rgb
