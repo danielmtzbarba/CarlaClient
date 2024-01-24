@@ -13,14 +13,17 @@ class RoutePlanner(object):
         self._route, self._wps = [], []
 
     def get_start_pose(self):
-        route_name = f'{self._config.hero.route}_{self._config.map}_seq_{self._config.seq}'
+        route_name = f'{self._config.hero.route}_{self._config.map}_seq_{self._config.n_scene}'
         route_path = os.path.join('src/routes/', f'{route_name}.npy')
         route = np.load(route_path)
 
         for p in route:
             self._route.append(Location(p[0], p[1], p[2]))
-
-        return Transform(self._route[0], Rotation(0, self._config.hero.spawn_angle , 0))
+        
+        spawn_loc = self._route.pop(0)
+        spawn_loc.z = 5
+        return Transform(spawn_loc,
+                           Rotation(0, self._config.hero.spawn_angle, 0))
 
     def get_waypoints(self, a, b):
         grp = GlobalRoutePlanner(self._map, self._speed)
@@ -43,7 +46,7 @@ class RoutePlanner(object):
         else:
             if self.args.exit_after_route:
                 self.exit = True
-            next_w = random.choice(current_w.next(self.args.ego.speed))
+            next_w = random.choice(current_w.next(self._config.speed))
         return next_w 
 
     def draw_route(self, world, waypoints):

@@ -1,3 +1,4 @@
+import traceback 
 import carla
 
 from src.simulation.traffic_manager import TrafficManager
@@ -17,6 +18,7 @@ class CarlaClient(carla.Client):
         self.vehicles_obj = []
 
         self.walkers = []
+        self.walker_objs = []
         self.controllers = []
 
         self.sensors = []
@@ -27,27 +29,29 @@ class CarlaClient(carla.Client):
 
         self.traffic = TrafficManager(self, self.args.traffic.tm_port)
         self.traffic.setup(self.args.traffic)
-        self.scene = Scene(self.args)
+        self.scene = Scene(self.args.scene)
         self.hero = Hero(self.args)
         self.hero.setup(self.world)
         actors, sensors = self.hero.spawn_sensors(self.world)
         self.sensors.extend(actors)
         self.sensors_obj.extend(sensors)
-                
-        for i in range(2):
-            actor, vehicle = self.scene.spawn_vehicle(self.world, self.hero)
-            self.vehicles.append(actor)
-            self.vehicles_obj.append(vehicle)
 
-        for i in range(2):
-            actor, vehicle = self.scene.spawn_vehicle(self.world, self.hero)
-            self.vehicles.append(actor)
-            self.vehicles_obj.append(vehicle)
-
-        if self.args.traffic.spawn_traffic:
-            self.traffic.spawn_traffic()
+        if self.args.map_config == 'traffic':
+            self.setup_scene()                
 
 # ----------------------------------------------------------------------
+    def setup_scene(self):
+        try: 
+            v_actors, v_objs, p_actors, p_objs = self.scene.setup(self.world, self.hero)
+            self.vehicles.extend(v_actors)
+            self.vehicles_obj.extend(v_objs)
+            self.walkers.extend(p_actors)
+            self.walker_objs.extend(p_objs)
+
+        except: 
+            # printing stack trace 
+            traceback.print_exc() 
+
     def tick(self, timeout):
 
         if not self.args.hero.autopilot:

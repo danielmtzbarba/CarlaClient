@@ -16,6 +16,17 @@ map_configs = {
         carla.MapLayer.ParkedVehicles,
         carla.MapLayer.Props,
     ],
+
+    'traffic': [
+        carla.MapLayer.Particles,
+        carla.MapLayer.Buildings,
+        carla.MapLayer.Ground,
+        carla.MapLayer.Walls,
+        carla.MapLayer.Decals,
+        carla.MapLayer.Foliage,
+        carla.MapLayer.ParkedVehicles,
+        carla.MapLayer.Props,
+    ],
 }
 
 def load_map_layers(world, map_config): 

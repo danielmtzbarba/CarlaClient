@@ -87,22 +87,21 @@ town_01_route_idx = [45, 63, 69, 78, 17, 39, 20, 36, 71, 75, 2, 33, 45, 63]
 town_02_route_idx = [56, 32, 34, 26, 4, 51, 4, 21, 31, 42, 56, 16]
 town_03_route_idx = [159, 169, 12, 281, 109, 257, 75, 33, 80, 0, 195, 153, 261, 135, 98, 156, 159, 169]
 
-seq, n_seq = [45, 63, 69], 1
+seq, n_seq = [32, 87, 17], 11 
 
 def main(map_name, reload, save):
 
     world = load_map(reload, f'{map_name}_Opt')
     citymap = world.get_map()
-    planner = RoutePlanner(citymap, 2)
+    planner = RoutePlanner(citymap,object, 2)
     road_wps = citymap.get_topology()
 
     ids, waypoints = create_waypoint_list(world, road_wps)
     route = new_route(world,planner, waypoints, seq)
-
     if save:
         route_name =f'front2bev_{map_name}_seq_{n_seq}'
         save_route(route, route_name)
 
 if __name__ == '__main__':
-    main(map_name='Town01', reload=False, save=False)
+    main(map_name='Town01', reload=False, save=True)
      

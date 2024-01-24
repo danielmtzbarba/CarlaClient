@@ -37,6 +37,7 @@ class Hero(Vehicle):
 
         self._current_w = world.map.get_waypoint(start_pose.location)
         self._actor = world.spawn_actor(self._bp, start_pose)    
+        self._speed = self._config.hero.speed
 
     def spawn_sensors(self, world):
         # Spawn ego sensors

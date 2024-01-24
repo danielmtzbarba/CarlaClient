@@ -1,12 +1,12 @@
 name: test 
 seed: 1596
-save: False 
+save: True 
 
 map: Town01
-map_config: layers_all 
-seq: 2 
+map_config: traffic 
+n_scene: 1 
 
-reload_map: True 
+reload_map: False 
 exit_after_route: True
 
 frames: 100 

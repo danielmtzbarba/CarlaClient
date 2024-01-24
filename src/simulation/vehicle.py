@@ -20,7 +20,7 @@ class Vehicle(object):
                                         self._config, speed=2)
 
 
-        if self._config.vehicle.route:
+        if self._config.route:
             start_pose = self._route_planner.get_start_pose() 
 
         else:
@@ -30,11 +30,12 @@ class Vehicle(object):
 
         self._actor = world.spawn_actor(self._bp, start_pose)    
         self._current_w = world.map.get_waypoint(start_pose.location)
-
+        self._speed = self._config.speed
         # Set carla autopilot
-        if self._config.vehicle.autopilot:
+        if self._config.autopilot:
             self._actor.set_autopilot(True, self._config.traffic.tm_port)
-        return self._actor, self
+
+        return self
 
     def move(self):
         self._actor.set_transform(self._current_w.transform)
@@ -42,7 +43,7 @@ class Vehicle(object):
         if self._route_planner.lenght_route > 0:
             self._current_w = self._route_planner.next_waypoint(self._current_w) 
         else:
-            self._current_w = random.choice(self._current_w.next(self._config.vehicle.speed))
+            self._current_w = random.choice(self._current_w.next(self._speed))
 
     @property   
     def location(self):
