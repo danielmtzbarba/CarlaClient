@@ -6,6 +6,21 @@ import carla
 from src.agents.navigation.global_route_planner import GlobalRoutePlanner
 from carla import Transform, Location, Rotation
 
+def are_same_point(point, point_list, tsh):
+
+    point = np.array((point.x, point.y))
+    for p in point_list:
+        p = np.array((p.x, p.y))
+        dist = np.linalg.norm(point - p)
+        if dist < tsh:
+            return True
+    return False
+
+def plot_points(world, point, id ,color=carla.Color(r=255, g=255, b=0)):
+    world.debug.draw_string(point, str(id), draw_shadow=False,
+                            color=color, life_time=10.0,
+                            persistent_lines=False)
+
 class RoutePlanner(object):
     def __init__(self, world, config, speed):
         self._world = world
@@ -21,7 +36,7 @@ class RoutePlanner(object):
     def get_start_pose(self):
         self.create_route(self._config.scene.route)
         spawn_loc = self._route.pop(0)
-        spawn_loc.z = 5
+        spawn_loc.z = 2 
         return Transform(spawn_loc,
                            Rotation(0, self._config.hero.spawn_angle, 0))
       
@@ -29,13 +44,17 @@ class RoutePlanner(object):
         self._roads = self._map.get_topology()
         self._road_ids, self._road_wps = [], []
 
+        i = 0
         for road in self._roads:
             point = road[0]
             id = point.id
             point = point.transform.location
 
-            self._road_wps.append(point)
-            self._road_ids.append(id)
+            if not are_same_point(point, self._road_wps, 2):
+                plot_points(self._world, point, i)
+                self._road_wps.append(point)
+                self._road_ids.append(id)
+                i += 1
     
     def create_route(self, route):
        for wp_id in route:
@@ -58,7 +77,7 @@ class RoutePlanner(object):
                 self._wps.extend(
                 self.get_route_waypoints(current_w.transform.location, 
                               next_route_loc))
-                self.draw_route(self._wps)
+#                self.draw_route(self._wps)
             next_w = self._wps.pop(0)
 
         else:

@@ -1,0 +1,18 @@
+scene:
+  
+  route: [83, 83] 
+
+  min_s: 100 
+  max_s: 3000 
+  n_vehicles: 15 
+  n_ped: 100 
+
+  vehicle:
+    route: False
+    speed: 2.1 
+    autopilot: False 
+
+  pedestrian: 
+    percent_static: 0.1 
+    percent_walking: 0.1
+    percent_running: 0.9

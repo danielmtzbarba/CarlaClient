@@ -52,6 +52,7 @@ def get_configuration():
         config.reload_map = True 
     else:
         config.reload_map = False 
+
     config.map_config = args.map_config
     config.n_scene = args.scene
 
@@ -59,7 +60,7 @@ def get_configuration():
 
     if config.save:
         config.logdir = create_experiment(config)
-
+             
     # Finalise config
     config.freeze()
 

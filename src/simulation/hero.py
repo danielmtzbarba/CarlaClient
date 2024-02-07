@@ -59,7 +59,7 @@ class Hero(Vehicle):
 
         for key, val in config.params.items():
             bp.set_attribute(key, str(val))
-        
+
         transform = Transform(Location(*config.location),
                                Rotation(*config.rotation))
         

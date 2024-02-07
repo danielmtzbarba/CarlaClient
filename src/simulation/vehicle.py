@@ -16,7 +16,7 @@ class Vehicle(object):
         It also spawns and attachs the args.ego.sensors.
         """
         self._bp = world.get_random_vehicle_bp()
-        self._route_planner = RoutePlanner(world.map,
+        self._route_planner = RoutePlanner(world,
                                         self._config, speed=2)
 
 

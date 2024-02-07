@@ -1,6 +1,6 @@
 name: test 
 seed: 1596
-save: False 
+save: True 
 
 map: Town02
 map_config: traffic 
