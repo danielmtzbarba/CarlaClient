@@ -24,7 +24,7 @@ class Hero(Vehicle):
         self._bp = world.get_bp(self._config.hero.bp)
         self._bp.set_attribute('role_name', 'hero')
 
-        self._route_planner = RoutePlanner(world.map, self._config, speed=2)
+        self._route_planner = RoutePlanner(world, self._config, speed=2)
 
         if self._config.hero.route:
             start_pose = self._route_planner.get_start_pose() 

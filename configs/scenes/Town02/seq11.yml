@@ -1,0 +1,16 @@
+scene:
+
+  min_s: 15 
+  max_s: 100
+  n_vehicles: 1  
+  n_ped: 3 
+
+  vehicle:
+    route: False
+    speed: 2.1 
+    autopilot: False 
+
+  pedestrian: 
+    percent_static: 0.1 
+    percent_walking: 0.1
+    percent_running: 0.9

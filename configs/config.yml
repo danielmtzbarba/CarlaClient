@@ -25,7 +25,7 @@ hero:
   speed: 2.0
 
 scene:
-
+  route: []
   min_s: 100 
   max_s: 300
   n_vehicles: 5 

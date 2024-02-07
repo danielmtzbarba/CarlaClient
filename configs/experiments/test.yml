@@ -1,8 +1,8 @@
 name: test 
 seed: 1596
-save: True 
+save: False 
 
-map: Town01
+map: Town02
 map_config: traffic 
 n_scene: 1 
 
@@ -16,7 +16,7 @@ hero:
   bp: vehicle.dodge.charger_2020
   sensors: ['rgb', 'top']
   autopilot: False
-  route: front2bev
+  route: seq1  
   speed: 2.0
 
 traffic: 
