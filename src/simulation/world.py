@@ -5,7 +5,7 @@ class World(object):
     def __init__(self, client):
         self._world = client.get_world()
         self._map = self._world.get_map()
-        self._debug = self._world.debug
+        self.debug = self._world.debug
 
     def setup(self, config):
         """

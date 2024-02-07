@@ -3,11 +3,23 @@ import carla
 import numpy as np
 from src.simulation.route_planner import RoutePlanner
 # -------------------------------------------
-
 def plot_points(world, point, id ,color=carla.Color(r=255, g=255, b=0)):
-        world.debug.draw_string(point, str(id), draw_shadow=False,
-                color=color, life_time=10.0,
-                persistent_lines=False)
+    world.debug.draw_string(point, str(id), draw_shadow=False,
+                            color=color, life_time=10.0,
+                            persistent_lines=False)
+
+def draw_route(world, planner):
+
+    i = 0
+    ids, waypoints = [], []
+
+    for point in planner.road_wps:
+        if not are_same_point(point, waypoints, 2):
+            plot_points(world, point, i)
+            waypoints.append(point)
+            i += 1
+
+    return ids, waypoints
     
 def are_same_point(point, point_list, tsh):
 
@@ -36,25 +48,6 @@ def load_map(reload_map: bool, map_name: str):
     return world
 # -------------------------------------------
 
-def create_waypoint_list(world, road_wps):
-
-    i = 0
-    ids, waypoints = [], []
-
-
-    for road in road_wps:
-
-        point = road[0]
-        id = point.id
-        point = point.transform.location
-
-        if not are_same_point(point, waypoints, 2):
-            plot_points(world, point, i)
-            waypoints.append(point)
-            ids.append(id)
-            i += 1
-    return ids, waypoints
-
 def save_route(route, route_name):
     route = np.array(route)
     save_path = f'src/routes/{route_name}.npy'
@@ -74,7 +67,7 @@ def new_route(world, planner,  waypoints, seq):
             z = 0.0
         route.append([aux.x, aux.y, z])
 
-        wps = planner.get_waypoints(a, aux)
+        wps = planner.get_route_waypoints(a, aux)
         planner.draw_route(world, wps)
 
         a = aux
@@ -83,25 +76,22 @@ def new_route(world, planner,  waypoints, seq):
 client = carla.Client("localhost", 2000)
 client.set_timeout(10)
 
-town_01_route_idx = [45, 63, 69, 78, 17, 39, 20, 36, 71, 75, 2, 33, 45, 63]
+#town_01_route_idx = [45, 63, 69, 78, 17, 39, 20, 36, 71, 75, 2, 33, 45, 63]
+#town_03_route_idx = [159, 169, 12, 281, 109, 257, 75, 33, 80, 0, 195, 153, 261, 135, 98, 156, 159, 169]
 town_02_route_idx = [56, 32, 34, 26, 4, 51, 4, 21, 31, 42, 56, 16]
-town_03_route_idx = [159, 169, 12, 281, 109, 257, 75, 33, 80, 0, 195, 153, 261, 135, 98, 156, 159, 169]
 
-seq, n_seq = [32, 87, 17], 11 
+seq, n_seq = [27, 89], 1 
 
 def main(map_name, reload, save):
 
     world = load_map(reload, f'{map_name}_Opt')
-    citymap = world.get_map()
-    planner = RoutePlanner(citymap,object, 2)
-    road_wps = citymap.get_topology()
-
-    ids, waypoints = create_waypoint_list(world, road_wps)
-    route = new_route(world,planner, waypoints, seq)
+    planner = RoutePlanner(world, object, 2)
+    planner.create_route(seq)
+    draw_route(world, planner)
     if save:
         route_name =f'front2bev_{map_name}_seq_{n_seq}'
-        save_route(route, route_name)
+        save_route(planner.route, route_name)
 
 if __name__ == '__main__':
-    main(map_name='Town01', reload=False, save=True)
+    main(map_name='Town02', reload=False, save=False)
      

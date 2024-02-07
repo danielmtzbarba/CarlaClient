@@ -30,8 +30,6 @@ def get_console_args():
                         default='front2bev', help='sensor suite setup')
     parser.add_argument('--pc', default='aisyslab', 
                         help='machine config')
-    parser.add_argument('--options', nargs='*', default=[],
-                        help='list of addition config options as key-val pairs')
     return parser.parse_args()
 
 def get_configuration():
@@ -58,7 +56,6 @@ def get_configuration():
     config.n_scene = args.scene
 
     config.merge_from_file(f'configs/scenes/{config.map}/seq{config.n_scene}.yml')
-    #config.merge_from_list(args.options)
 
     if config.save:
         config.logdir = create_experiment(config)
