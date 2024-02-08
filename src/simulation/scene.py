@@ -32,8 +32,8 @@ class Scene(object):
     def try_vehicle_spawn(self, world, road_id, lane_id):
         car = Vehicle(self._config.vehicle)
         spawned = False
-        wp = None
         while not spawned:
+            wp = None
             while wp == None: 
                 s = randint(self._config.min_s, self._config.max_s)
                 wp = self.get_random_wp_in_road(world, road_id, lane_id, s) 
@@ -47,8 +47,8 @@ class Scene(object):
     def try_pedestrian_spawn(self, world, road_id, lane_id):
         pedestrian = Pedestrian(self._config.pedestrian)
         spawned = False
-        wp = None
         while not spawned:
+            wp = None
             while wp == None: 
                 s = randint(-200, 500)
                 wp = self.get_random_wp_in_road(world, road_id, lane_id, s) 
@@ -67,8 +67,9 @@ class Scene(object):
         wp = world.map.get_waypoint_xodr(road_id,lane_id, s)
         if wp:
             loc = wp.transform.location
-            loc = Location(loc.x, loc.y, 1.0)
+            loc = Location(loc.x, loc.y, 2.0)
             return Transform(loc, Rotation(0, 180, 0))
+        return None
 
 
         
