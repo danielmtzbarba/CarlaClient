@@ -32,10 +32,13 @@ class Scene(object):
     def try_vehicle_spawn(self, world, road_id, lane_id):
         car = Vehicle(self._config.vehicle)
         spawned = False
+        wp = None
         while not spawned:
-            spwn_p = self.get_random_wp_in_road(world, road_id, lane_id) 
+            while wp == None: 
+                s = randint(self._config.min_s, self._config.max_s)
+                wp = self.get_random_wp_in_road(world, road_id, lane_id, s) 
             try:
-                car.setup(world, spwn_p) 
+                car.setup(world, wp) 
                 spawned = True
                 return car 
             except Exception as err:
@@ -44,10 +47,13 @@ class Scene(object):
     def try_pedestrian_spawn(self, world, road_id, lane_id):
         pedestrian = Pedestrian(self._config.pedestrian)
         spawned = False
+        wp = None
         while not spawned:
-            wp = self.get_random_wp_in_road(world, road_id, lane_id) 
+            while wp == None: 
+                s = randint(-200, 500)
+                wp = self.get_random_wp_in_road(world, road_id, lane_id, s) 
             loc = world.map.get_waypoint(wp.location, project_to_road=True, lane_type=(carla.LaneType.Sidewalk)).transform.location 
-            loc = Location(loc.x, loc.y, 1.0)
+            loc = Location(loc.x, loc.y, 2.0)
             angle = randint(0, 360)
             spwn_p = Transform(loc, Rotation(0, angle, 0))
             try:
@@ -57,13 +63,12 @@ class Scene(object):
             except Exception as err:
                 print(repr(err))
 
-    def get_random_wp_in_road(self, world, road_id, lane_id):
-        wp = None
-        while wp == None:
-            s = randint(self._config.min_s, self._config.max_s)
-            wp = world.map.get_waypoint_xodr(road_id,lane_id, s)
-        loc = wp.transform.location
-        loc = Location(loc.x, loc.y, 1.0)
-        return Transform(loc, Rotation(0, 180, 0))
+    def get_random_wp_in_road(self, world, road_id, lane_id, s):
+        wp = world.map.get_waypoint_xodr(road_id,lane_id, s)
+        if wp:
+            loc = wp.transform.location
+            loc = Location(loc.x, loc.y, 1.0)
+            return Transform(loc, Rotation(0, 180, 0))
+
 
         
