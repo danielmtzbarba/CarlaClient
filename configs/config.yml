@@ -52,6 +52,16 @@ rgb:
     fov: 90.0
   save: True
  
+sem:
+  id: sem 
+  bp: sensor.camera.semantic_segmentation
+  location: [0.0, 0.0, 2.0]
+  rotation: [0.0, 0.0, 0.0]
+  params: 
+    image_size_x: 1024
+    image_size_y: 1024
+    fov: 90.0
+  save: True
 top:
   id: bev
   bp: sensor.camera.semantic_segmentation

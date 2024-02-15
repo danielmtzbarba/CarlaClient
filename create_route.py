@@ -32,7 +32,7 @@ client.set_timeout(10)
 #town_03_route_idx = [159, 169, 12, 281, 109, 257, 75, 33, 80, 0, 195, 153, 261, 135, 98, 156, 159, 169]
 town_02_route_idx = [56, 32, 34, 26, 4, 51, 4, 21, 31, 42, 56, 16]
 
-seq, n_seq = [20, 33], 1 
+seq, n_seq = [25, 39], 1 
 
 def main(map_name, reload, save):
 

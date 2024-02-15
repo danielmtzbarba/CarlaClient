@@ -1,9 +1,9 @@
-name: debug 
+name: test 
 seed: 1596
 save: True 
 
-map: Town01
-map_config: layers_none 
+map: Town02
+map_config: traffic 
 n_scene: 1 
 
 reload_map: False 
@@ -14,7 +14,7 @@ frames: 100
 hero: 
   spawn_angle: 0
   bp: vehicle.dodge.charger_2020
-  sensors: ['rgb', 'top', 'sem']
+  sensors: ['rgb', 'top']
   autopilot: False
   route: seq1  
   speed: 2.0
