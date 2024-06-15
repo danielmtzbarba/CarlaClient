@@ -1,9 +1,11 @@
 scene:
 
-  min_s: 15 
-  max_s: 100
-  n_vehicles: 1  
-  n_ped: 3 
+  route: [46, 50] 
+
+  min_s: 30 
+  max_s: 150
+  n_vehicles: 4 
+  n_ped: 50 
 
   vehicle:
     route: False

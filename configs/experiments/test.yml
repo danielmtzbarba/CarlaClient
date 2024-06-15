@@ -14,9 +14,9 @@ frames: 100
 hero: 
   spawn_angle: 0
   bp: vehicle.dodge.charger_2020
-  sensors: ['rgb', 'top', 'sem']
+  sensors: ['rgb', 'top', 'sem', 'rgbd']
   autopilot: False
-  route: seq1  
+  route: seq1 
   speed: 2.0
 
 traffic: 

@@ -29,3 +29,14 @@ top:
     image_size_x: 1024
     image_size_y: 1024
   save: True
+
+rgbd:
+  id: rgbd
+  bp: sensor.camera.depth
+  location: [0.0, 0.0, 2.0]
+  rotation: [0.0, 0.0, 0.0]
+  params: 
+    image_size_x: 1024
+    image_size_y: 1024
+    fov: 90.0
+  save: True

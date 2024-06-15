@@ -1,6 +1,6 @@
 import numpy as np
 from os.path import join
-
+import matplotlib.pyplot as plt
 from matplotlib import cm
 from carla import ColorConverter
 
@@ -32,10 +32,9 @@ class Camera(object):
     
     def get_frame(self):
         return self._frame
-    
+
     def save_frame(self):
         im_path = join(self.save_path,
                     f"{self._n_frame}.jpg")
-        
         self._frame.save_to_disk(im_path)
         self._n_frame += 1

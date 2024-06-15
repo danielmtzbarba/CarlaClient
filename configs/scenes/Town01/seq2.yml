@@ -1,5 +1,7 @@
 scene:
 
+  route: [63, 69] 
+
   min_s: 30 
   max_s: 150
   n_vehicles: 2  
