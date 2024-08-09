@@ -1,6 +1,6 @@
 name: debug 
 seed: 1596
-save: True 
+save: False 
 
 map: Town01
 map_config: layers_none 

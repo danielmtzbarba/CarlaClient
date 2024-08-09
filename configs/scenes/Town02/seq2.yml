@@ -4,7 +4,7 @@ scene:
 
   min_s: 30 
   max_s: 200 
-  n_vehicles: 0 
+  n_vehicles: 3 
   n_ped: 10 
 
   vehicle:

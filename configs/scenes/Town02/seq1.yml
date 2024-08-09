@@ -4,8 +4,8 @@ scene:
 
   min_s: 30 
   max_s: 150
-  n_vehicles: 3  
-  n_ped: 30 
+  n_vehicles: 10 
+  n_ped: 100
 
   vehicle:
     route: False

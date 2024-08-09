@@ -5,11 +5,11 @@ scene:
   min_s: 20
   max_s: 400 
   n_vehicles: 7 
-  n_ped: 10 
+  n_ped: 100 
 
   vehicle:
     route: False
-    speed: 2.1 
+    speed: 2.0 
     autopilot: False 
 
   pedestrian: 

@@ -1,10 +1,10 @@
 scene:
   
-  route: [54, 26] 
+  route: [187, 18] 
 
   min_s: 30 
-  max_s: 150
-  n_vehicles: 3 
+  max_s: 1000 
+  n_vehicles: 2 
   n_ped: 40 
 
   vehicle:
@@ -16,4 +16,3 @@ scene:
     percent_static: 0.1 
     percent_walking: 0.1
     percent_running: 0.9
-  
