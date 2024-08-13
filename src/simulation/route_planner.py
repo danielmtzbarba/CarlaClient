@@ -43,7 +43,7 @@ class RoutePlanner(object):
     def get_start_pose(self):
         self.create_route(self._config.scene.route)
         spawn_loc = self._route.pop(0)
-        spawn_loc.z = 2
+        spawn_loc.z = spawn_loc.z + 1.0
         return Transform(spawn_loc, Rotation(0, self._config.hero.spawn_angle, 0))
 
     def _get_road_wps(self):
