@@ -1,0 +1,30 @@
+name: f2b-rgbd 
+seed: 1596
+save: True 
+
+map: Town01
+map_config: traffic 
+n_scene: 2 
+
+frames: 100 
+
+hero: 
+  spawn_angle: 0
+  bp: vehicle.dodge.charger_2020
+  sensors: ['rgb', 'top', 'sem', 'rgbd']
+  autopilot: False
+  route: seq1 
+  speed: 2.0
+
+traffic: 
+    spawn_traffic: False
+    tm_port: 8000
+    tm_hybrid: False
+    n_vehicles: 50
+    filterv: vehicle.*
+    vehicle_speed: -20.0
+
+    n_walkers: 100
+    filterw: walker.pedestrian.*
+    percent_running: 0.1
+    percent_crossing: 0.1

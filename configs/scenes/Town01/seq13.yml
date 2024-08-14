@@ -1,15 +1,16 @@
+
 scene:
 
-  route: [45, 63] 
+  route: [24, 87] 
 
-  min_s: 30 
-  max_s: 150
-  n_vehicles: 5 
+  min_s: 100 
+  max_s: 300 
+  n_vehicles: 10 
   n_ped: 50 
 
   vehicle:
     route: False
-    speed: 2.1 
+    speed: 2.0 
     autopilot: False 
 
   pedestrian: 
