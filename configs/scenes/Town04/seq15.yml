@@ -2,14 +2,14 @@ scene:
   
   route: [226, 18] 
 
-  min_s: -200 
-  max_s: 200 
-  n_vehicles: 13 
+  min_s: -300 
+  max_s: 300 
+  n_vehicles: 30 
   n_ped: 100 
 
   vehicle:
     route: False
-    speed: 2.0 
+    speed: 1.9 
     autopilot: False 
 
   pedestrian: 

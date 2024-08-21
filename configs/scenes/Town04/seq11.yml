@@ -3,8 +3,8 @@ scene:
   
   route: [67, 138] 
 
-  min_s: -1000 
-  max_s: 1000 
+  min_s: -300
+  max_s: 300 
   n_vehicles: 50 
   n_ped: 0 
 
